@@ -2963,6 +2963,7 @@ body.dash-on{padding-bottom:88px}
 .dash-resume{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .dash-resume b{font-family:var(--dash-head);font-size:16px;font-weight:600}
 .dash-resume p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.dash-resume-btns{display:flex;gap:8px;flex-shrink:0}
 
 /* ---- Performance panel (on the Dashboard home, after the stats) ---- */
 .dash-perf{margin-bottom:14px}
@@ -3342,6 +3343,22 @@ body.dash-on{padding-bottom:88px}
     goTab('build');
     waitFor('#resumeBtn', function(btn){ btn.click(); });
   }
+  /* Discard the saved test from the Dashboard resume card (2026-11-27):
+     the card is patch-rendered, so it has no native Discard button (Part 1's
+     card IS the native one, which is why it has one). Reuse the app's own
+     Discard path exactly: click the native #discardBtn, which is present in
+     the build stack even while the Dashboard shows. It asks
+     'Discard the saved test?' in the app's modal and, on OK, clears the
+     session (in-memory + localStorage) and re-renders; the MutationObserver
+     on the app then re-renders the Dashboard home and the card disappears.
+     If the native button is not in the DOM yet, open the Build tab and wait
+     for it — same pattern as resumeSession(). */
+  function discardSession(){
+    var db = document.getElementById('discardBtn');
+    if(db){ db.click(); return; }
+    goTab('build');
+    waitFor('#discardBtn', function(btn){ btn.click(); });
+  }
 
   /* ---------- dashboard home ---------- */
   function homeSig(){
@@ -3389,7 +3406,7 @@ body.dash-on{padding-bottom:88px}
       html += '<div class="dash-resume"><div><b>Resume your test</b><p>'
         + esc(s.label || 'Test') + ' &middot; ' + ans + ' of ' + total + ' answered'
         + (s.startedAt ? ' &middot; started ' + esc(fmtDate(s.startedAt)) : '')
-        + '</p></div><button class="btn primary" type="button" data-act="resume">Resume</button></div>';
+        + '</p></div><span class="dash-resume-btns"><button class="btn primary" type="button" data-act="resume">Resume</button><button class="btn danger" type="button" data-act="discard">Discard</button></span></div>';
     }
 
     /* Stash any setup-form cards already moved into the home: the
@@ -3795,6 +3812,7 @@ body.dash-on{padding-bottom:88px}
       var act = t.getAttribute('data-act');
       if(act === 'section'){ startSection(t.getAttribute('data-sec')); }
       else if(act === 'resume'){ resumeSession(); }
+      else if(act === 'discard'){ discardSession(); }
       return;
     }
     /* Performance panel tabs (the panel lives on the Dashboard now, so
