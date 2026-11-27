@@ -2350,6 +2350,9 @@ body{padding-bottom:88px}
 /* Available Mock Tests lives on the Mock exam page now (inside #app). */
 .dash-mock-tests{margin-top:20px}
 .dash-mock-tests>h2{margin:0 0 4px}
+.dash-mock-count{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 4px}
+.dash-mock-count label{font-weight:600;font-size:14px}
+.dash-mock-count input[type="number"]{width:84px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font-size:14px}
 .dash-sec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
 .dash-sec-card{padding:16px;display:flex;flex-direction:column;gap:8px}
 .dash-sec-card h3{font-size:16px;margin:0;font-weight:600}
@@ -2684,10 +2687,11 @@ body.dash-in-test #app .qmeta{font-size:13px}
   var themeBtn2 = document.getElementById('dashThemeBtn');
 
   /* ---------- state ---------- */
-  var dashPerfTarget = false; /* bottom-bar "Progress" shows the Dashboard's
-     Performance panel (2026-11-27): the panel lives in exactly one place
-     (the Dashboard). True while the Dashboard is showing it, so the
-     pill stays on Progress (see renderDash). */
+  var mockWant = 20; /* mock-window question count (2026-11-27): the
+     Available Mock Tests panel has a "How many questions?" chooser like
+     the Set it up form (number input, min 1, max = bank total, 20 by
+     default). Captured when a section card is tapped -- the panel is
+     removed as soon as the Build tab opens, so it cannot be read later. */
   var lastSecSig = '';
   var lastSig = '';
   var lastInTest = false;
@@ -2754,6 +2758,19 @@ body.dash-in-test #app .qmeta{font-size:13px}
     grid.innerHTML = html;
     applySearchFilter();
   }
+  function readMockCount(){
+    var el = document.getElementById('dashMockCnt');
+    var n = el ? parseInt(el.value, 10) : 20;
+    if(!n || n < 1) n = 20;
+    return n;
+  }
+  function mockTotal(){
+    try{
+      var qmEl = document.getElementById('qm');
+      if(qmEl){ var qm = JSON.parse(qmEl.textContent); if(qm && qm.qTotal) return qm.qTotal; }
+    }catch(e){}
+    return 1791;
+  }
   function ensureMockTests(){
     var inTest = !!appEl.querySelector('.testbar');
     var inResults = !!appEl.querySelector('.score');
@@ -2771,14 +2788,18 @@ body.dash-in-test #app .qmeta{font-size:13px}
       existing = document.createElement('div');
       existing.className = 'dash-mock-tests';
       existing.id = 'dashMockTests';
-      existing.innerHTML = '<h2>Available Mock Tests</h2><div class="dash-sec-grid" id="dashMockSecGrid"></div>'
+      existing.innerHTML = '<h2>Available Mock Tests</h2>'
+        + '<div class="dash-mock-count"><label for="dashMockCnt">How many questions?</label>'
+        + '<input type="number" id="dashMockCnt" min="1" max="' + mockTotal() + '" value="' + mockWant + '">'
+        + '<span class="muted small">20 by default &mdash; same as Set it up.</span></div>'
+        + '<div class="dash-sec-grid" id="dashMockSecGrid"></div>'
         + '<p class="muted" id="dashMockSecEmpty" hidden>No tests match your search.</p>';
       var first = stack.querySelector('.card');
       if(first && first.nextSibling) stack.insertBefore(existing, first.nextSibling);
       else stack.appendChild(existing);
       existing.addEventListener('click', function(e){
         var b = e.target && e.target.closest ? e.target.closest('.dash-sec-start') : null;
-        if(b) startSectionTest(b.getAttribute('data-sec'));
+        if(b){ mockWant = readMockCount(); startSectionTest(b.getAttribute('data-sec')); }
       });
     }
     renderSecCards();
@@ -2977,7 +2998,7 @@ body.dash-in-test #app .qmeta{font-size:13px}
     var activeIdx = 0;
     for(var i = 0; i < navBtns.length; i++){
       var nb = navBtns[i].getAttribute('data-bnav');
-      var isOn = (dashPerfTarget && showHome) ? nb === 'progress' : NAVMAP[nb] === activeTab;
+      var isOn = NAVMAP[nb] === activeTab;
       navBtns[i].classList.toggle('on', isOn);
       if(isOn) activeIdx = i;
     }
@@ -3014,25 +3035,17 @@ body.dash-in-test #app .qmeta{font-size:13px}
 
   /* ---------- navigation ---------- */
   function goTab(v){
-    dashPerfTarget = false;
     var b = document.querySelector('#tabs button[data-v="' + v + '"]');
     if(b) b.click();
     try{ window.scrollTo(0, 0); }catch(e){}
     setTimeout(renderDash, 80);
   }
-  /* Progress (bottom bar) shows the Dashboard's Performance panel: the
-     panel lives in exactly one place (the Dashboard) since 2026-11-27.
-     The Dashboard IS the Build test view, so open it and scroll the
-     panel into view; the pill stays on Progress while the Dashboard is
-     showing it (see renderDash). */
-  function goPerfPanel(){
-    goTab('build');
-    dashPerfTarget = true;
-    setTimeout(function(){
-      var p = document.getElementById('dashPerf');
-      if(p){ try{ p.scrollIntoView(); }catch(e){} }
-    }, 250);
-  }
+  /* Progress (bottom bar) opens the app's own Progress tab (2026-11-27):
+     performance overview, accuracy by section (weakness), full test
+     history and the Questions-to-review list (mistakes) all live there
+     -- and, unlike the Dashboard home, it has no Set-it-up form and no
+     unit selection. The Dashboard's Your Performance panel stays on the
+     Build test home as a summary. */
   function startMock(){
     goTab('mock');
     var tries = 0;
@@ -3082,7 +3095,8 @@ body.dash-in-test #app .qmeta{font-size:13px}
     var all = document.getElementById('cntAll');
     if(all){ var m = /of\s+(\d+)/.exec(all.textContent || ''); if(m) pool = parseInt(m[1], 10); }
     if(!pool && cnt) pool = parseInt(cnt.getAttribute('max') || '0', 10);
-    var n = pool ? Math.min(20, pool) : 20;
+    var n = pool ? Math.min(mockWant, pool) : mockWant;
+    if(n < 1) n = 1;
     if(cnt){
       cnt.value = String(n);
       cnt.dispatchEvent(newEvent('change'));
@@ -3190,7 +3204,6 @@ body.dash-in-test #app .qmeta{font-size:13px}
     /* "Build test" is the dashboard home (landing); the setup flow
        itself opens from the home's Build-a-test card. */
     var nav = b.getAttribute('data-bnav');
-    if(nav === 'progress'){ goPerfPanel(); return; }
     goTab(NAVMAP[nav]);
   });
   if(searchInput) searchInput.addEventListener('input', applySearchFilter);
