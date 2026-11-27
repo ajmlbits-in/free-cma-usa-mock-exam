@@ -2953,6 +2953,9 @@ body.dash-on{padding-bottom:88px}
 
 /* ---- Available Mock Tests panel (top of the Mock Tests page) ---- */
 .dash-avail{margin-bottom:14px}
+.dash-mock-count{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 4px}
+.dash-mock-count label{font-weight:600;font-size:14px}
+.dash-mock-count input[type="number"]{width:84px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font-size:14px}
 .dash-avail .dash-sec-head{margin:0 0 12px}
 .dash-keep{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .dash-keep h2{margin:0 0 4px}
@@ -3173,10 +3176,11 @@ body.dash-on{padding-bottom:88px}
   var dashHomeEl = null;
   var dashVisible = true;
   var perfTab = 'overview';
-  var dashPerfTarget = false; /* bottom-bar Progress shows the Dashboard's
-     Performance panel (2026-11-27): the panel lives in exactly one place
-     (the Dashboard). True while the Dashboard is showing it, so the
-     pill stays on Progress (see updateSideActive). */
+  var mockWant = 20; /* mock-window question count (2026-11-27): the
+     Available Mock Tests panel has a "How many questions?" chooser like
+     the Set it up form (number input, min 1, max = bank total, 20 by
+     default). Captured when a section card is tapped -- the panel is
+     removed as soon as the Build tab opens, so it cannot be read later. */
   var searchQuery = '';
   var palCollapsed = false;
   var lastHomeSig = '';
@@ -3232,7 +3236,6 @@ body.dash-on{padding-bottom:88px}
     return !!(dashHomeEl && dashHomeEl.style.display !== 'none');
   }
   function goTab(v){
-    dashPerfTarget = false;
     dashVisible = false;
     hideDashHome();
     var b = tabBtn(v);
@@ -3245,18 +3248,12 @@ body.dash-on{padding-bottom:88px}
       else if(tries > 30){ clearInterval(iv); }
     }, 100);
   }
-  /* Progress (bottom bar) shows the Dashboard's Performance panel: the
-     panel lives in exactly one place (the Dashboard) since 2026-11-27.
-     Shows the Dashboard and scrolls the panel into view; the pill stays
-     on Progress while the Dashboard is showing it (see updateSideActive). */
-  function goProgressPanel(){
-    dashPerfTarget = true;
-    goDashboard();
-    setTimeout(function(){
-      var p = document.getElementById('dashPerf');
-      if(p){ try{ p.scrollIntoView(); }catch(e){} }
-    }, 250);
-  }
+  /* Progress (bottom bar) opens the app's own Progress tab (2026-11-27):
+     performance overview, accuracy by section (weakness), test history
+     and the Questions-to-review list (mistakes) all live there -- and,
+     unlike the Dashboard home, it has no Set-it-up form and no unit
+     selection. The Dashboard's Your Performance panel stays on the
+     Build test home as a summary. */
   function goDashboard(){
     dashVisible = true;
     renderHome();
@@ -3284,6 +3281,7 @@ body.dash-on{padding-bottom:88px}
     waitFor('#mockBtn', function(btn){ btn.click(); });
   }
   function startSection(sec){
+    mockWant = readMockCount();
     goTab('build');
     waitFor('#startBtn', function(){
       /* The picker is visible by default on the Dashboard now, so the
@@ -3300,6 +3298,20 @@ body.dash-on{padding-bottom:88px}
             all[i].checked = on;
             all[i].dispatchEvent(newEvent('change'));
           }
+        }
+        /* Mock-window count (2026-11-27): use the chooser's value,
+           clamped to this section's pool; 20 when nothing was picked.
+           Set on every #cnt (the moved setup copy and the fresh one)
+           so the app reads the right count whichever it resolves. */
+        var pool = 0;
+        try{ var qm2 = readQm() || {}; if(qm2.qCounts) pool = qm2.qCounts[sec] || 0; }catch(e){}
+        var n = pool ? Math.min(mockWant, pool) : mockWant;
+        if(n < 1) n = 1;
+        var cnts = document.querySelectorAll('#cnt');
+        for(var ci = 0; ci < cnts.length; ci++){
+          cnts[ci].value = String(n);
+          cnts[ci].dispatchEvent(newEvent('change'));
+          cnts[ci].dispatchEvent(newEvent('input'));
         }
         var sb = document.getElementById('startBtn');
         if(sb) sb.click();
@@ -3488,12 +3500,22 @@ body.dash-on{padding-bottom:88px}
     var qm = readQm() || {};
     return JSON.stringify([qm.qCounts || {}, qm.units || {}, sectionTitles()]);
   }
+  function readMockCount(){
+    var el = document.getElementById('dashMockCnt');
+    var n = el ? parseInt(el.value, 10) : 20;
+    if(!n || n < 1) n = 20;
+    return n;
+  }
   function availHTML(){
     var qm = readQm() || {};
     var counts = qm.qCounts || {};
     var unitCounts = qm.units || {};
     var titles = sectionTitles();
-    var html = '<h2 class="dash-sec-head">Available Mock Tests</h2><div class="dash-sec-grid">';
+    var html = '<h2 class="dash-sec-head">Available Mock Tests</h2>'
+      + '<div class="dash-mock-count"><label for="dashMockCnt">How many questions?</label>'
+      + '<input type="number" id="dashMockCnt" min="1" max="' + (qm.qTotal || 5421) + '" value="' + mockWant + '">'
+      + '<span class="muted small">20 by default &mdash; same as Set it up.</span></div>'
+      + '<div class="dash-sec-grid">';
     for(var k=0;k<SECS.length;k++){
       var sec = SECS[k];
       var title = titles[sec] || ('Section ' + sec);
@@ -3764,9 +3786,7 @@ body.dash-on{padding-bottom:88px}
     var t = e.target && e.target.closest ? e.target.closest('button[data-bnav]') : null;
     if(!t) return;
     var nav = t.getAttribute('data-bnav');
-    if(nav === 'build'){ dashPerfTarget = false; goDashboard(); return; }
-    if(nav === 'progress'){ goProgressPanel(); return; }
-    dashPerfTarget = false;
+    if(nav === 'build'){ goDashboard(); return; }
     goTab(nav);
   }
   function onHomeClick(e){
@@ -3801,7 +3821,7 @@ body.dash-on{padding-bottom:88px}
     if(!bottomNavEl) return;
     var tab = currentTab();
     var active = 'build';
-    if(dashHomeVisible()){ active = dashPerfTarget ? 'progress' : 'build'; }
+    if(dashHomeVisible()){ active = 'build'; }
     else if(tab === 'mock'){ active = 'mock'; }
     else if(tab === 'flashcards'){ active = 'flashcards'; }
     else if(tab === 'material'){ active = 'material'; }
