@@ -1320,6 +1320,68 @@ var st=document.createElement(String.fromCharCode(115,116,121,108,101));st.textC
 <script>
 (function(){
   "use strict";
+  /* Header progress bar: hidden while a test is running, shown only on the
+     results / review screen after a test ends, with that test's final
+     answered %. On every other screen (home, setup, Flashcards, Study
+     material, Progress, About) it stays hidden -- no 0% bar.
+     Works on the rendered DOM only (the app source is integrity-checked):
+     - a test is running when #app has .testbar (the sticky test header;
+       the in-test bar lives inside it). The .progress bars on the Build
+       resume card and the Progress tab are NOT tests and do not count.
+     - results / review is showing when window._lastResult exists AND #app
+       has .score / #reviewBtn (results) or #backBtn (review).
+     - the final % is the last answered/total pct read from the in-test
+       bar's aria-valuenow / aria-valuemax before the test ended. */
+  var wrap = document.querySelector('.header-progress-wrap');
+  if(!wrap) return;
+  var bar = wrap.querySelector('.header-progress');
+  var fill = bar ? bar.querySelector('i') : null;
+  var thumb = bar ? bar.querySelector('.progress-thumb') : null;
+  var label = wrap.querySelector('.header-progress-label');
+  var lastTestPct = null;
+  function clampDot(p){ return Math.min(97, Math.max(3, p)); }
+  function setHeaderPct(p){
+    p = Math.min(100, Math.max(0, +p || 0));
+    if(fill){ fill.style.width = p + '%'; fill.classList.toggle('full', p >= 100); }
+    if(thumb) thumb.style.left = clampDot(p) + '%';
+    if(bar) bar.setAttribute('aria-valuenow', String(Math.round(p)));
+    if(label) label.textContent = Math.round(p) + '% completed';
+  }
+  function update(){
+    var appEl = document.getElementById('app');
+    if(!appEl){ wrap.style.display = 'none'; return; }
+    var testBar = appEl.querySelector('.testbar');
+    if(testBar){
+      /* Test running: capture the answered % for the results screen. */
+      var prog = testBar.querySelector('.progress');
+      if(prog){
+        var now = parseFloat(prog.getAttribute('aria-valuenow') || '0');
+        var max = parseFloat(prog.getAttribute('aria-valuemax') || '0');
+        if(max > 0 && now >= 0) lastTestPct = Math.min(100, Math.max(0, now / max * 100));
+      }
+      wrap.style.display = 'none';
+      return;
+    }
+    var r = window._lastResult;
+    var onResults = !!r && !!(appEl.querySelector('.score') || appEl.querySelector('#reviewBtn') || appEl.querySelector('#backBtn'));
+    if(onResults){
+      var pct = (lastTestPct !== null && lastTestPct !== undefined) ? lastTestPct : r.pct;
+      setHeaderPct(pct);
+      wrap.style.display = '';
+      return;
+    }
+    wrap.style.display = 'none';
+  }
+  update();
+  var appEl = document.getElementById('app');
+  if(appEl && window.MutationObserver){
+    new MutationObserver(function(){ update(); }).observe(appEl, {childList:true, subtree:true});
+  }
+})();
+</script>
+<script>
+(function(){
+  "use strict";
   /* Keep the sticky test bar flush under the header at every width:
      measure the real header height (it changes when the tabs wrap or
      the profile chip appears) and feed it to the .testbar CSS var. */
