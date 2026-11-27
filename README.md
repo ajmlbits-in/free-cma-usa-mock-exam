@@ -40,4 +40,4 @@ Kannur, Kerala. Made with Muse by Meta.
 Some of this study material is our own work, and the rest has been carefully
 gathered from different sources and organized section by section, so you can
 find what you need with ease. Putting it all together like this took many
-hours of hard work — it was not easy.
+hours of hard work.
