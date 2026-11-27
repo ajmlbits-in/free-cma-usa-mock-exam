@@ -3245,9 +3245,15 @@ body.dash-in-test #app .qmeta{font-size:13px}
     var deb = null;
     new MutationObserver(function(){
       /* Test start/end must re-shell immediately (the test layout hides
-         the sidebar/topbar); anything else can wait for the debounce. */
+         the sidebar/topbar); anything else can wait for the debounce.
+         While a test runs, re-inject Exit at once: the sealed app
+         rebuilds the whole test screen (innerHTML) on every tap, which
+         destroys the patch-injected Exit; waiting for the 150 ms
+         debounce leaves Exit missing and End test slides into its
+         place, so a quick tap hits End test instead of Exit. */
       var now = !!appEl.querySelector('.testbar');
       if(now !== lastInTest){ renderDash(); return; }
+      if(now) patchTest();
       if(deb) clearTimeout(deb);
       deb = setTimeout(renderDash, 150);
     }).observe(appEl, {childList:true, subtree:true});
