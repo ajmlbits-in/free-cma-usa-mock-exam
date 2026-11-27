@@ -207,6 +207,23 @@
   footer b { color: var(--text); }
   .visits { margin-top: 12px; }
   .visits img { vertical-align: middle; }
+  .visitors-card {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 20px;
+    box-shadow: var(--shadow-sm);
+    max-width: 420px; margin: 0 auto 22px;
+    font-weight: 700; font-size: 15px; color: var(--text-2);
+  }
+  .visitors-card .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #22c55e;
+    animation: pulse-dot 1.6s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  .visitors-card img { height: 26px; width: auto; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -216,6 +233,12 @@
     <p class="tagline">CMA USA Part 1 &amp; Part 2 — practice questions, flashcards, revision notes and mock exams, free for every student.</p>
     <span class="free-line">100% free — no login, no payment, everything unlocked.</span>
   </header>
+
+  <div class="visitors-card">
+    <span class="dot" aria-hidden="true"></span>
+    <span>Total visitors</span>
+    <img src="https://visitor-badge.laobi.icu/badge?page_id=ajmlbits-in.github.io.free-cma-usa-mock-exam&amp;left_color=%23007558&amp;right_color=%23007558" alt="Total visitors">
+  </div>
 
   <p class="picker-label">Choose an exam</p>
   <div class="picker-grid">
@@ -279,7 +302,6 @@
   <footer>
     <p>Built by <b>Muhammed Ajmal K (@ajmalasees_)</b>, a CMA USA Part 1 candidate from Kannur, Kerala.<br>
     Made with Muse by Meta.</p>
-    <p class="visits"><img src="https://visitor-badge.laobi.icu/badge?page_id=ajmlbits-in.github.io.free-cma-usa-mock-exam&amp;left_color=%23007558&amp;right_color=%23007558" alt="Visitors"></p>
   </footer>
 </main>
 </body>
