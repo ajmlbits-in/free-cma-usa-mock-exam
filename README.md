@@ -1,6 +1,6 @@
 # Free CMA USA Mock Exam
 
-Live at <https://ajmalchattukappara-cmd.github.io/free-cma-usa-mock-exam/>
+Live at <https://ajmlbits-in.github.io/free-cma-usa-mock-exam/>
 (repo: `free-cma-usa-mock-exam`).
 
 Free CMA USA mock exams — Part 1 and Part 2 — with practice questions, flashcards,
@@ -40,4 +40,4 @@ Kannur, Kerala. Made with Muse by Meta.
 Some of this study material is our own work, and the rest has been carefully
 gathered from different sources and organized section by section, so you can
 find what you need with ease. Putting it all together like this took many
-hours of hard work.
+hours of hard work — it was not easy.
