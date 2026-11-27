@@ -1408,10 +1408,10 @@ var st=document.createElement(String.fromCharCode(115,116,121,108,101));st.textC
 #app .card.flow-pick{scroll-margin-top:calc(var(--hdrH,82px) + 12px)}
 #app .card.flow-pick.pick-reveal{animation:pickIn .34s cubic-bezier(.32,.9,.28,1) both}
 @keyframes pickIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-/* ---- Sections collapsed by default: only the A-F headers show.
-   Tapping a section's header (the 🔽 expand button) animates its
-   unit list open; tapping again collapses it. The patch keeps the
-   details element open and animates a grid row instead, so the
+/* ---- Sections expanded by default: every section's unit list shows
+   on load. Tapping a section's header (the 🔽 collapse button)
+   collapses its unit list; tapping again expands it. The patch keeps
+   the details element open and animates a grid row instead, so the
    open / close is smooth rather than the native snap. ---- */
 #app .tree details.ux-sec>summary::before{content:"🔽";font-size:11px;width:18px;transform:rotate(0deg);transition:transform .3s cubic-bezier(.32,.9,.28,1)}
 #app .tree details.ux-sec.ux-open>summary::before{transform:rotate(180deg)}
@@ -1455,9 +1455,9 @@ input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
         picks what to study after pressing Start.
      3) The intro card (FREE MOCK EXAM FOR PART 1) is made compact with
         a shorter line of text.
-     4) Inside step 2, sections A-F start collapsed — units are listed
-        only after tapping a section's expand header, with a smooth
-        animation, and collapse again on a second tap. */
+     4) Inside step 2, sections A-F start expanded — every unit list
+        shows on load; tapping a section's header collapses its units,
+        with a smooth animation, and tapping again expands them. */
   var appEl = document.getElementById('app');
   if(!appEl) return;
   var reduced = false;
@@ -1522,12 +1522,13 @@ input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
       firstSec.dispatchEvent(ev);
     }
     if(cnt && savedCnt !== null && cnt.value !== savedCnt) cnt.value = savedCnt;
-    /* Sections start collapsed: only the A-F headers are listed, no
-       units in full. Tapping a section's header expands its units
-       (the .sub list is wrapped so its height can animate smoothly);
-       tapping again collapses it. The native details toggle is
-       intercepted — the element stays open and a class drives the
-       animation, so nothing snaps. */
+    /* Sections start expanded: every unit list shows on load (the
+       collapse button is there for users who want to hide a list).
+       Tapping a section's header collapses its units (the .sub list
+       is wrapped so its height can animate smoothly); tapping again
+       expands them. The native details toggle is intercepted — the
+       element stays open and a class drives the animation, so
+       nothing snaps. */
     var dets = pickCard.querySelectorAll('#tree details');
     for(var j=0;j<dets.length;j++){
       (function(det){
@@ -1538,9 +1539,10 @@ input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
         while(sub.firstChild) wrap.appendChild(sub.firstChild);
         sub.appendChild(wrap);
         det.classList.add('ux-sec');
+        det.classList.add('ux-open');
         var sum = det.querySelector('summary');
         if(!sum) return;
-        sum.setAttribute('aria-expanded','false');
+        sum.setAttribute('aria-expanded','true');
         sum.addEventListener('click', function(e){
           e.preventDefault();
           var open = det.classList.toggle('ux-open');
@@ -1705,5 +1707,1545 @@ input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--a
 .heart-anim{animation:none!important;transform:none!important}
 .heart-anim::before{animation:heart-swap 6s steps(1) infinite}
 </style>
+<style id="engineUiStyle">
+/* Engine-style flat restyle (2026-11-27 UI pass) — patch layer.
+   Sits after every other style in the file, so these rules win at equal
+   specificity. Uses the app's own --vars, so both dark and light themes
+   stay readable. Dark is the primary design; light stays clean.
+   Nothing here changes layout, tabs, content or links — look only. */
+:root{--bg:#f4f6f9;--surface:#ffffff;--surface2:#eef1f6;--ink:#141c29;--muted:#5b6678;--line:#d9dfe8;--accent:#1f5fbf;--accent-ink:#ffffff;--accent-soft:#e3edfb;--ok:#17803d;--ok-soft:#e1f4e7;--bad:#b42318;--bad-soft:#fde8e6;--warn:#a65f00;--warn-soft:#fff1d6;--shadow:none}
+:root[data-theme="dark"]{--bg:#0b0f16;--surface:#131a29;--surface2:#1b2436;--ink:#e7ecf3;--muted:#94a3b8;--line:#273349;--accent:#7aa8f8;--accent-ink:#0b1220;--accent-soft:#1c2c49;--ok:#5ed08a;--ok-soft:#142e1f;--bad:#ff8a80;--bad-soft:#3a1a18;--warn:#f2b45a;--warn-soft:#3a2a10;--shadow:none}
+/* flat page + header: no gradients, no backdrop blur */
+body{background:var(--bg);background-attachment:scroll}
+:root[data-theme="dark"] body{background:var(--bg)}
+header.top{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none}
+:root[data-theme="dark"] header.top{background:var(--surface)}
+/* flat cards: solid surface, 1px border, small radius, no shadow/blur */
+.card:not(.support-card){background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;border:1px solid var(--line);border-radius:10px;box-shadow:none}
+:root[data-theme="dark"] .card:not(.support-card){background:var(--surface);border-color:var(--line);box-shadow:none}
+.support-card{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;border:1px solid var(--line);border-radius:10px}
+[data-theme="dark"] .support-card{background:var(--surface);border:1px solid var(--line)}
+/* flat dialogs (welcome / name / message boxes): no glass Mac window */
+.glasswin{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:none}
+:root[data-theme="dark"] .glasswin{background:var(--surface);border-color:var(--line);color:var(--ink);box-shadow:none}
+.glass-body h2{color:var(--ink)}
+:root[data-theme="dark"] .glass-body h2{color:var(--ink)}
+.glass-body p{color:var(--muted)}
+:root[data-theme="dark"] .glass-body p{color:var(--muted)}
+.glass-feats b{color:var(--ink)}
+:root[data-theme="dark"] .glass-feats b{color:var(--ink)}
+.glass-check{color:var(--muted)}
+:root[data-theme="dark"] .glass-check{color:var(--muted)}
+.glass-foot{border-top:1px solid var(--line)}
+:root[data-theme="dark"] .glass-foot{border-top-color:var(--line)}
+.glass-actions{border-top:1px solid var(--line)}
+:root[data-theme="dark"] .glass-actions{border-top-color:var(--line)}
+.glass-btn{background:var(--surface);color:var(--accent)}
+:root[data-theme="dark"] .glass-btn{background:var(--surface);color:var(--accent)}
+.glass-btn+.glass-btn{border-left:1px solid var(--line)}
+:root[data-theme="dark"] .glass-btn+.glass-btn{border-left-color:var(--line)}
+.glass-btn:hover{background:var(--surface2)}
+:root[data-theme="dark"] .glass-btn:hover{background:var(--surface2)}
+.glass-btn:active{background:var(--surface2)}
+:root[data-theme="dark"] .glass-btn:active{background:var(--surface2)}
+.glass-btn.primary{background:var(--accent);color:var(--accent-ink)}
+:root[data-theme="dark"] .glass-btn.primary{background:var(--accent);color:var(--accent-ink)}
+.glass-btn.primary:hover{background:var(--accent);filter:brightness(1.08)}
+:root[data-theme="dark"] .glass-btn.primary:hover{background:var(--accent);filter:brightness(1.08)}
+.glass-btn.primary:active{background:var(--accent);filter:brightness(.94)}
+:root[data-theme="dark"] .glass-btn.primary:active{background:var(--accent);filter:brightness(.94)}
+.glass-title{color:var(--muted)}
+:root[data-theme="dark"] .glass-title{color:var(--muted)}
+#welcomeModal{background:rgba(10,15,25,.55);backdrop-filter:none;-webkit-backdrop-filter:none}
+#profileModal{background:rgba(10,15,25,.55);backdrop-filter:none;-webkit-backdrop-filter:none}
+.glass-form .field{color:var(--ink)}
+:root[data-theme="dark"] .glass-form .field{color:var(--ink)}
+.glass-form input[type=text]{background:var(--surface);border:1.5px solid var(--line);border-radius:8px;color:var(--ink);backdrop-filter:none;-webkit-backdrop-filter:none}
+:root[data-theme="dark"] .glass-form input[type=text]{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.modal .box{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:none}
+:root[data-theme="dark"] .modal .box{background:var(--surface);border-color:var(--line);color:var(--ink);box-shadow:none}
+/* flat tabs: no pill shadow, no top line, no icon pop */
+nav.tabs{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:none}
+:root[data-theme="dark"] nav.tabs{background:var(--surface);border-color:var(--line);box-shadow:none}
+nav.tabs button{border-radius:8px}
+nav.tabs button::before{display:none}
+nav.tabs button[aria-current="page"] svg{animation:none}
+nav.tabs button[aria-current="page"] .tab-label{animation:none}
+nav.tabs button[aria-current="page"]::before{animation:none}
+/* no card entrance animation */
+#app .card{animation:none}
+/* flat progress: solid fill, flat dot, no glow */
+.progress>i{background:var(--accent)}
+.progress .progress-thumb,.header-progress .progress-thumb{box-shadow:none}
+.header-progress>i{background:var(--accent)}
+/* flat controls: no blur */
+.btn:not(.primary):not(.danger){background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:8px}
+:root[data-theme="dark"] .btn:not(.primary):not(.danger){background:var(--surface)}
+.btn{border-radius:8px}
+.btn.primary{border-radius:8px}
+.chip{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}
+:root[data-theme="dark"] .chip{background:var(--surface)}
+.opt{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:10px}
+:root[data-theme="dark"] .opt{background:var(--surface)}
+.free-strip{background:var(--ok-soft);backdrop-filter:none;-webkit-backdrop-filter:none}
+:root[data-theme="dark"] .free-strip{background:var(--ok-soft)}
+input[type=text]{border-radius:8px}
+input[type=number]{border-radius:8px}
+.cardselect{border-radius:8px}
+.seg{border-radius:8px}
+.icon-btn{border-radius:8px}
+/* new UI-pass blocks: history + review list */
+.uiP-att{border-top:1px solid var(--line);padding:8px 0}
+.uiP-att:first-of-type{border-top:0}
+.uiP-att summary{cursor:pointer;font-weight:500;line-height:1.5}
+.uiP-rev{border-top:1px solid var(--line);padding:10px 0}
+.uiP-rev:first-of-type{border-top:0}
+.uiPassFocusBtn{margin-left:8px}
+
+</style>
+<script id="uiPassPatch">
+(function(){
+  "use strict";
+  /* Engine-style UI pass (2026-11-27) — DOM-only patch, outside the sealed
+     app source. It never writes the sealed store key (cmaP1QB.v1); new data
+     lives in cmaP1QB.review.v1 (wrong questions). History is a read-only
+     view of the sealed attempts already saved in cmaP1QB.v1. Answer-option
+     order is shuffled per attempt, display order only: each option keeps
+     its true letter, badge and data-l, so correctness, strike-outs and
+     explanations stay exact and no letter remapping is needed. */
+  var LS = 'cmaP1QB.v1';
+  var REVKEY = 'cmaP1QB.review.v1';
+  var LETTERS = ['A', 'B', 'C', 'D'];
+  var SECTIONS = ['A', 'B', 'C', 'D', 'E', 'F'];
+  var appEl = document.getElementById('app');
+  if(!appEl) return;
+
+  function lsGet(k){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
+  function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  function readStore(){ var s = lsGet(LS); return s || {attempts:[], qstat:{}, session:null}; }
+  function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function trim(s){ return String(s || '').replace(/^\s+|\s+$/g, ''); }
+  function fmtDate(iso){ try{ return new Date(iso).toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); }catch(e){ return ''; } }
+  function fmtDT(iso){ try{ return new Date(iso).toLocaleString(undefined, {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}); }catch(e){ return ''; } }
+  function fmtShort2(sec){ sec = Math.max(0, Math.round(sec || 0)); if(sec < 60) return sec + 's'; var m = Math.floor(sec / 60), s = sec % 60; if(m < 60) return m + 'm ' + ('0' + s).slice(-2) + 's'; var h = Math.floor(m / 60); return h + 'h ' + ('0' + (m % 60)).slice(-2) + 'm'; }
+  function sessionStartedAt(){
+    var st = readStore();
+    if(st && st.session && st.session.startedAt) return String(st.session.startedAt);
+    if(window._lastSess && window._lastSess.startedAt) return String(window._lastSess.startedAt);
+    return '';
+  }
+
+  /* ---------- Review list: wrong questions, kept in one place ---------- */
+  function readRev(){ var r = lsGet(REVKEY); if(r && r.items) return r; return {items:[]}; }
+  function writeRev(r){ lsSet(REVKEY, r); }
+  function reviewKey(it){ return it.sec + '|' + it.unit + '|' + String(it.stem || '').slice(0, 120); }
+  function addReview(it){
+    var r = readRev(), k = reviewKey(it), found = null;
+    for(var i = 0; i < r.items.length; i++){ if(reviewKey(r.items[i]) === k){ found = r.items[i]; break; } }
+    if(found){ found.times = (found.times || 1) + 1; found.date = it.date; found.your = it.your; found.correct = it.correct; }
+    else { it.times = 1; r.items.push(it); if(r.items.length > 300) r.items = r.items.slice(-300); }
+    writeRev(r);
+  }
+  /* qmeta shapes: test card "Section A · <title> · <unit>", review card
+     "Q1 · Section A · <unit> · ...". Returns {sec, unit}. */
+  function parseQMeta(txt){
+    var parts = String(txt || '').split('·');
+    for(var i = 0; i < parts.length; i++) parts[i] = trim(parts[i]);
+    for(var j = 0; j < parts.length; j++){
+      var m = /^Section\s+([A-F])$/.exec(parts[j]);
+      if(m){
+        var unit = (trim(parts[0]).indexOf('Q') === 0) ? (parts[j + 1] || '') : (parts[j + 2] || '');
+        return {sec: m[1], unit: unit};
+      }
+    }
+    return {sec:'', unit:''};
+  }
+  function stemOf(card){
+    var qb = card ? card.querySelector('.qbody') : null;
+    if(!qb) return '';
+    return qb.textContent.replace(/\s+/g, ' ').replace(/^\s+|\s+$/g, '').slice(0, 200);
+  }
+  var capturedPractice = {};
+  var lastStartedAt = null;
+  function capturePractice(){
+    var testbar = appEl.querySelector('.testbar');
+    if(!testbar) return;
+    var expl = appEl.querySelector('.expl');
+    if(!expl) return;
+    var verdict = expl.querySelector('.verdict');
+    if(!verdict || verdict.className.indexOf('bad') === -1) return; /* only wrong answers */
+    var card = expl.closest ? expl.closest('.card') : null;
+    if(!card) return;
+    var head = testbar.querySelector('.qmeta');
+    var hm = /Question\s+(\d+)\s+of\s+(\d+)/.exec(head ? head.textContent : '');
+    var sa = sessionStartedAt();
+    if(sa !== lastStartedAt){ lastStartedAt = sa; capturedPractice = {}; }
+    var key = sa + ':' + (hm ? hm[1] : '?');
+    if(capturedPractice[key]) return;
+    var qmeta = card.querySelector('.qmeta');
+    var pq = parseQMeta(qmeta ? qmeta.textContent : '');
+    var stem = stemOf(card);
+    if(!pq.sec || !stem) return;
+    var your = '';
+    var sel = card.querySelector('.opt.sel');
+    if(sel) your = sel.getAttribute('data-l') || sel.getAttribute('data-L') || '';
+    var cm = /The correct answer is\s+([A-D])/.exec(expl.textContent);
+    capturedPractice[key] = 1;
+    addReview({sec: pq.sec, unit: pq.unit, stem: stem, your: your, correct: cm ? cm[1] : '', date: new Date().toISOString()});
+  }
+  var lastReviewSig = '';
+  function captureReview(){
+    var cards = appEl.querySelectorAll('.review-q');
+    if(!cards.length) return;
+    var sigParts = [String(cards.length)];
+    for(var i = 0; i < cards.length; i++){
+      var v = cards[i].querySelector('.verdict');
+      sigParts.push(v ? v.textContent : '');
+    }
+    sigParts.push(stemOf(cards[0]).slice(0, 60));
+    var sig = sigParts.join('|');
+    if(sig === lastReviewSig) return;
+    lastReviewSig = sig;
+    for(var j = 0; j < cards.length; j++){
+      var card = cards[j];
+      var verdict = card.querySelector('.verdict');
+      if(!verdict) continue;
+      var vt = verdict.textContent || '';
+      if(vt.indexOf('You got it right') !== -1) continue;
+      var m = /Your answer:\s*([A-D])\s*·\s*Correct:\s*([A-D])/.exec(vt);
+      if(vt.indexOf('Skipped') === -1 && !m) continue;
+      var qmeta = card.querySelector('.qmeta');
+      var pq = parseQMeta(qmeta ? qmeta.textContent : '');
+      var stem = stemOf(card);
+      if(!pq.sec || !stem) continue;
+      addReview({sec: pq.sec, unit: pq.unit, stem: stem, your: m ? m[1] : '', correct: m ? m[2] : '', date: new Date().toISOString()});
+    }
+  }
+
+  /* ---------- Resume: enrich the sealed resume card (read-only) ---------- */
+  function enrichResume(){
+    var rb = document.getElementById('resumeBtn');
+    if(!rb) return;
+    var card = rb.closest ? rb.closest('.card') : null;
+    if(!card || card.getAttribute('data-uiPass-resume')) return;
+    var st = readStore();
+    var s = st.session;
+    if(!s) return;
+    var small = card.querySelector('.muted.small');
+    if(!small) return;
+    var ans = 0;
+    for(var i = 0; i < (s.answers || []).length; i++){ if(s.answers[i] !== null) ans++; }
+    var extra = ' · ' + ans + ' of ' + ((s.ids || []).length) + ' answered';
+    if(s.startedAt) extra += ' · started ' + fmtDate(s.startedAt);
+    small.textContent = small.textContent + extra;
+    card.setAttribute('data-uiPass-resume', '1');
+  }
+
+  /* ---------- History + review list on the Progress tab ---------- */
+  var lastHistSig = '';
+  var lastRevSig = '';
+  function injectHistory(){
+    var h2s = appEl.querySelectorAll('h2');
+    var recentCard = null;
+    for(var i = 0; i < h2s.length; i++){
+      if(trim(h2s[i].textContent.replace(/\s+/g, ' ')) === 'Recent tests'){ recentCard = h2s[i].closest('.card'); break; }
+    }
+    if(!recentCard){ lastHistSig = ''; return; }
+    var st = readStore();
+    var atts = st.attempts || [];
+    var sig = atts.length + '|' + (atts.length ? atts[atts.length - 1].date : '');
+    var old = document.getElementById('uiPassHistory');
+    if(!old || sig !== lastHistSig){
+      lastHistSig = sig;
+      if(old && old.parentNode) old.parentNode.removeChild(old);
+      var card = document.createElement('div');
+      card.className = 'card';
+      card.id = 'uiPassHistory';
+      var html = '<h2>Full test history</h2><p class="muted small">Every test on this device, newest first — tap one to see the section breakdown. History lives on this device only; “Clear all progress” removes it too.</p>';
+      if(!atts.length){ html += '<p class="muted">No tests yet.</p>'; }
+      else{
+        var list = atts.slice(-50).reverse();
+        html += '<p class="muted small">Showing the latest ' + list.length + ' of ' + atts.length + '.</p>';
+        for(var j = 0; j < list.length; j++){
+          var a = list[j];
+          html += '<details class="uiP-att"><summary><b>' + esc(fmtDate(a.date)) + '</b> · ' + esc(a.label || 'Test') + ' · <b>' + a.correct + ' / ' + a.total + '</b> (' + a.pct + '%)</summary>';
+          if(a.perSec){
+            html += '<table class="data" style="margin-top:8px"><tr><th>Section</th><th>Score</th><th style="text-align:right">Accuracy</th></tr>';
+            for(var k = 0; k < SECTIONS.length; k++){
+              var p = a.perSec[SECTIONS[k]];
+              if(!p || !p.total) continue;
+              var pc = Math.round(p.correct / p.total * 100);
+              html += '<tr><td>Section ' + SECTIONS[k] + '</td><td>' + p.correct + ' / ' + p.total + '</td><td style="text-align:right">' + pc + '%</td></tr>';
+            }
+            html += '</table>';
+          }
+          html += '<p class="muted small" style="margin-top:6px">' + esc(fmtDT(a.date)) + (a.timeSec ? ' · ' + esc(fmtShort2(a.timeSec)) : '') + (a.skipped != null ? ' · ' + a.skipped + ' skipped' : '') + '</p></details>';
+        }
+      }
+      card.innerHTML = html;
+      recentCard.parentNode.insertBefore(card, recentCard.nextSibling);
+    }
+    injectReviewList();
+  }
+  function injectReviewList(){
+    var anchor = document.getElementById('uiPassHistory');
+    if(!anchor) return;
+    var r = readRev();
+    var items = r.items.slice().reverse();
+    var sig = items.length + '|' + (items.length ? items[0].date + '|' + items[0].times : '');
+    var old = document.getElementById('uiPassReview');
+    if(old && sig === lastRevSig) return;
+    lastRevSig = sig;
+    if(old && old.parentNode) old.parentNode.removeChild(old);
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'uiPassReview';
+    var html = '<h2>Questions to review</h2><p class="muted small">Questions you got wrong, kept in one place. Use “Focus on my misses” on Build a test and your next test draws from these units first.</p>';
+    if(!items.length){ html += '<p class="muted">Nothing here yet. Wrong answers land here when you check an answer in practice mode, or open Review after a test.</p>'; }
+    else{
+      var shown = items.slice(0, 50);
+      html += '<p class="muted small">Showing ' + shown.length + ' of ' + items.length + '.</p>';
+      for(var i = 0; i < shown.length; i++){
+        var it = shown[i];
+        html += '<div class="uiP-rev"><div class="small"><b>Section ' + esc(it.sec) + '</b> · ' + esc(it.unit) + '</div><div style="margin-top:2px">' + esc(String(it.stem || '').slice(0, 120)) + (String(it.stem || '').length > 120 ? '…' : '') + '</div><div class="muted small" style="margin-top:2px">' + (it.your ? 'Your answer: ' + esc(it.your) + ' · ' : '') + 'Correct: ' + esc(it.correct) + ' · missed ' + (it.times || 1) + '× · ' + esc(fmtDate(it.date)) + '</div></div>';
+      }
+    }
+    html += '<div class="row" style="margin-top:12px"><button class="btn primary" id="uiPassPracticeMisses"' + (items.length ? '' : ' disabled') + '>Practice my misses</button><button class="btn" id="uiPassClearReview">Clear review list</button></div>';
+    card.innerHTML = html;
+    anchor.parentNode.insertBefore(card, anchor.nextSibling);
+    var pm = document.getElementById('uiPassPracticeMisses');
+    if(pm) pm.onclick = function(){ goBuildAndFocus(); };
+    var cl = document.getElementById('uiPassClearReview');
+    if(cl) cl.onclick = function(){ writeRev({items:[]}); lastRevSig = ''; injectReviewList(); };
+  }
+
+  /* ---------- Focus on my misses: tick only the units with misses ---------- */
+  function reviewUnits(){
+    var r = readRev();
+    var set = {};
+    for(var i = 0; i < r.items.length; i++) set[r.items[i].sec + '|' + r.items[i].unit] = 1;
+    return set;
+  }
+  function applyFocus(){
+    var tree = document.querySelector('#tree');
+    if(!tree) return false;
+    var pickCard = tree.closest('.card');
+    if(!pickCard) return false;
+    var units = reviewUnits();
+    var n = 0;
+    for(var k in units) n++;
+    if(!n) return false;
+    if(pickCard.style.display === 'none'){ pickCard.style.display = ''; pickCard.classList.add('pick-reveal'); }
+    var boxes = pickCard.querySelectorAll('.unitBox');
+    for(var i = 0; i < boxes.length; i++){
+      var b = boxes[i];
+      var on = !!units[b.getAttribute('data-sec') + '|' + b.getAttribute('data-unit')];
+      b.checked = on;
+      b.defaultChecked = on;
+      if(on) b.setAttribute('checked', ''); else b.removeAttribute('checked');
+    }
+    var secs = pickCard.querySelectorAll('.secBox');
+    for(var j = 0; j < secs.length; j++){
+      var s = secs[j];
+      var sibs = pickCard.querySelectorAll('.unitBox[data-sec="' + s.getAttribute('data-sec') + '"]');
+      var all = true;
+      for(var q = 0; q < sibs.length; q++){ if(!sibs[q].checked){ all = false; break; } }
+      s.checked = all;
+      s.defaultChecked = all;
+      if(all) s.setAttribute('checked', ''); else s.removeAttribute('checked');
+    }
+    /* Refresh the app's own counters via a unit change (a section change
+       would re-tick/untick a whole section — never fire that here). */
+    var first = pickCard.querySelector('.unitBox');
+    if(first){
+      var ev;
+      try{ ev = new Event('change'); }catch(e){ ev = document.createEvent('Event'); ev.initEvent('change', true, false); }
+      first.dispatchEvent(ev);
+    }
+    var dets = pickCard.querySelectorAll('#tree details');
+    for(var d = 0; d < dets.length; d++){
+      var det = dets[d];
+      var has = false;
+      var ub = det.querySelectorAll('.unitBox');
+      for(var u = 0; u < ub.length; u++){ if(ub[u].checked){ has = true; break; } }
+      if(has){
+        det.classList.add('ux-open');
+        var sum = det.querySelector('summary');
+        if(sum) sum.setAttribute('aria-expanded', 'true');
+      }
+    }
+    try{ pickCard.scrollIntoView({behavior:'auto', block:'start'}); }catch(e){ pickCard.scrollIntoView(); }
+    return true;
+  }
+  function injectFocusBtn(){
+    var startBtn = document.querySelector('#startBtn');
+    if(!startBtn) return;
+    var row = startBtn.parentNode;
+    if(!row || row.querySelector('.uiPassFocusBtn')) return;
+    var r = readRev();
+    if(!r.items.length) return;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn uiPassFocusBtn';
+    b.textContent = 'Focus on my misses (' + r.items.length + ')';
+    b.addEventListener('click', function(){ applyFocus(); });
+    row.appendChild(b);
+  }
+  function goBuildAndFocus(){
+    var tab = document.querySelector('#tabs button[data-v="build"]');
+    if(tab) tab.click();
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      if(applyFocus()){ clearInterval(iv); return; }
+      if(tries >= 20) clearInterval(iv);
+    }, 100);
+  }
+
+  /* ---------- Shuffled answer options on every attempt ---------- */
+  /* The sealed app shuffles QUESTION order only; option letters always
+     render A-D in bank order. This reorders the four option rows per
+     question, display order only: each option keeps its true letter,
+     badge and data-l, so correctness, strike-outs and explanations stay
+     exact and no letter remapping is ever needed. The permutation is
+     keyed on the question stem plus an attempt salt. A fresh salt is
+     drawn when a new test session starts (its startedAt changes);
+     Resume keeps the same session, so the order is stable across resume
+     and in review. Shuffle state is in-memory only. */
+  /* The earlier re-lettering shuffle persisted mappings in
+     cmaP1QB.optshuffle.v1; that key is obsolete now — drop it if an
+     earlier preview wrote it. */
+  try{ localStorage.removeItem('cmaP1QB.optshuffle.v1'); }catch(e){}
+  var attemptSalt = 0;
+  var optPerms = {};
+  var lastShuffleSess = null;
+  function hashStr(s){
+    var h = 5381, i;
+    for(i = 0; i < s.length; i++){ h = ((h << 5) + h + s.charCodeAt(i)) | 0; }
+    return (h >>> 0).toString(36);
+  }
+  function permFor(key){
+    var p = optPerms[key];
+    if(p) return p;
+    p = [0, 1, 2, 3];
+    for(var i = p.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = p[i]; p[i] = p[j]; p[j] = t;
+    }
+    optPerms[key] = p;
+    return p;
+  }
+  function dataL(b){
+    if(!b || !b.getAttribute) return '';
+    var L = b.getAttribute('data-L') || b.getAttribute('data-l') || '';
+    if(!L){
+      var lab = b.querySelector ? b.querySelector('.L') : null;
+      if(lab) L = (lab.textContent || '').replace(/^\s+|\s+$/g, '');
+    }
+    return L;
+  }
+  function applyOptionShuffle(){
+    var inTest = !!appEl.querySelector('.testbar');
+    var inReview = !!appEl.querySelector('#backBtn');
+    if(!inTest && !inReview) return;
+    var sa = sessionStartedAt();
+    if(sa && sa !== lastShuffleSess){ lastShuffleSess = sa; attemptSalt++; optPerms = {}; }
+    var lists = appEl.querySelectorAll('.opts');
+    for(var li = 0; li < lists.length; li++){
+      var ul = lists[li];
+      var card = null;
+      if(ul.closest){
+        card = ul.closest('.review-q') || ul.closest('.card');
+      }
+      var qb = card ? card.querySelector('.qbody') : null;
+      if(!qb) continue;
+      var key = hashStr(qb.textContent || '') + ':' + attemptSalt;
+      var perm = permFor(key);
+      var arr = Array.prototype.slice.call(ul.children);
+      if(arr.length !== 4) continue;
+      var cur = [];
+      for(var k = 0; k < arr.length; k++){
+        var b = arr[k].querySelector ? arr[k].querySelector('button.opt') : null;
+        if(!b && arr[k].querySelector) b = arr[k].querySelector('button');
+        cur.push(dataL(b));
+      }
+      if(cur.indexOf('') !== -1) continue; /* options unidentifiable — leave the list alone */
+      var want = perm.map(function(ix){ return LETTERS[ix]; });
+      var same = true;
+      for(var m = 0; m < 4; m++){ if(cur[m] !== want[m]){ same = false; break; } }
+      if(same) continue;
+      var frag = document.createDocumentFragment();
+      for(var n = 0; n < 4; n++){ frag.appendChild(arr[perm[n]]); }
+      ul.appendChild(frag);
+    }
+  }
+
+  /* ---------- Finish check: unanswered count before ending ---------- */
+  var finishArmed = false;
+  var finishTarget = null;
+  function unansweredCount(){
+    var bar = appEl.querySelector('.testbar .progress');
+    var now = 0, max = 0;
+    if(bar){
+      now = parseInt(bar.getAttribute('aria-valuenow') || '0', 10);
+      max = parseInt(bar.getAttribute('aria-valuemax') || '0', 10);
+    } else {
+      var st = readStore();
+      if(st && st.session){ max = (st.session.ids || []).length; now = (st.session.answers || []).filter(function(a){ return a !== null; }).length; }
+    }
+    if(!max) return {count:0, total:0};
+    return {count: Math.max(0, max - now), total: max};
+  }
+  function ensureFinishModal(){
+    var m = document.getElementById('uiPassFinishModal');
+    if(m) return m;
+    m = document.createElement('div');
+    m.className = 'modal';
+    m.id = 'uiPassFinishModal';
+    m.style.display = 'none';
+    m.innerHTML = '<div class="box"><h2 style="margin:0 0 8px">Finish this test?</h2><p id="uiPassFinishText" style="margin:0"></p><div class="row" style="margin-top:16px"><button class="btn primary" id="uiPassFinishYes">Finish anyway</button><button class="btn" id="uiPassFinishNo">Keep going</button></div></div>';
+    document.body.appendChild(m);
+    document.getElementById('uiPassFinishYes').onclick = function(){
+      m.style.display = 'none';
+      document.body.style.overflow = '';
+      if(finishTarget){ finishArmed = true; var t = finishTarget; finishTarget = null; t.click(); }
+    };
+    document.getElementById('uiPassFinishNo').onclick = function(){
+      m.style.display = 'none';
+      document.body.style.overflow = '';
+      finishTarget = null;
+    };
+    return m;
+  }
+  /* "See results" (last question) has no confirm in the app — intercept it
+     and show the unanswered count first. */
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest ? e.target.closest('#finishBtn') : null;
+    if(!t) return;
+    if(finishArmed){ finishArmed = false; return; }
+    var un = unansweredCount();
+    if(un.count <= 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    finishTarget = t;
+    var m = ensureFinishModal();
+    document.getElementById('uiPassFinishText').textContent = 'You still have ' + un.count + ' unanswered question' + (un.count === 1 ? '' : 's') + ' out of ' + un.total + '. Unanswered questions count as skipped.';
+    m.style.display = 'grid';
+    document.body.style.overflow = 'hidden';
+  }, true);
+  /* "End test" already confirms in the app, but without the count — add
+     the count to its message once its own confirm has opened. */
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest ? e.target.closest('#endBtn') : null;
+    if(!t) return;
+    var un = unansweredCount();
+    if(un.count <= 0) return;
+    setTimeout(function(){
+      var msg = document.getElementById('msgText');
+      if(msg && msg.textContent.indexOf('End the test now?') === 0){
+        msg.textContent = 'End the test now? You still have ' + un.count + ' unanswered question' + (un.count === 1 ? '' : 's') + ' out of ' + un.total + '. Unanswered questions count as skipped.';
+      }
+    }, 0);
+  }, false);
+
+  /* ---------- Drive everything off the rendered DOM ---------- */
+  function pass(){
+    try{ capturePractice(); }catch(e){}
+    try{ captureReview(); }catch(e){}
+    try{ enrichResume(); }catch(e){}
+    try{ injectFocusBtn(); }catch(e){}
+    try{ injectHistory(); }catch(e){}
+    try{ applyOptionShuffle(); }catch(e){}
+  }
+  if(window.MutationObserver){
+    new MutationObserver(pass).observe(appEl, {childList:true, subtree:true});
+  }
+  pass();
+})();
+</script>
+<style id="dashStyle">
+/* Dashboard rearrangement 2026-11-27, top-nav v3 (patch layer, outside
+   the sealed app source). Dark-first top navigation + topbar shell
+   around the existing app (the left sidebar was removed 2026-11-27 —
+   the six named tabs live in a sticky top bar instead):
+   the header, tabs, #app and footer are MOVED into this shell by the
+   dash patch script — no tab, card or link is removed or renamed.
+   Every number on the dashboard is computed from the real history in
+   cmaP1QB.v1 (read-only); with no history the stats show honest empty
+   states, never sample numbers. Fonts: Plus Jakarta Sans headings +
+   Inter body (Google Fonts link injected by the script, system fallback
+   when offline). Sizes per the user's table: page heading 30px/650,
+   section heading 22px/600, question text 18px/500, options 15px/400,
+   navigation 14px/500, timer 18px/600, explanations 15px/400. */
+:root{--sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;--dash-head:'Plus Jakarta Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif}
+body{font-family:var(--sans)}
+h1,h2,h3{font-family:var(--dash-head)}
+#app h1,.dash-hero h1{font-size:30px;font-weight:650;line-height:1.2}
+#app h2,.dash-home h2{font-size:22px;font-weight:600}
+#app .qbody{font-size:18px;font-weight:500;line-height:1.55}
+#app .opt{font-size:15px;font-weight:400}
+#app .expl{font-size:15px;font-weight:400}
+nav.tabs button{font-size:14px;font-weight:500}
+#app .timer,#elapsedEl{font-size:18px;font-weight:600}
+.dash-hidden{display:none!important}
+.dash-shell{display:block;min-height:100vh}
+.dash-topnav{display:flex;align-items:center;gap:10px;padding:8px 16px;position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.dash-topnav-brand{display:flex;gap:10px;align-items:center;flex:none}
+.dash-topnav-brand b{display:block;font-family:var(--dash-head);font-size:17px;font-weight:700;line-height:1.2}
+.dash-topnav-brand small{color:var(--muted);font-size:12px}
+.dash-topnav-actions{flex:none;display:flex;align-items:center;gap:8px;margin-left:auto}
+.dash-topnav-actions #dashThemeBtn{display:flex;align-items:center;gap:10px}
+.dash-topnav-actions #dashLogoutSlot .btn{width:auto;margin-bottom:0}
+.dash-profile{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.dash-logo-mark{width:38px;height:38px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;flex:none}
+.dash-logo-mark svg{width:22px;height:22px}
+/* Fixed bottom navigation (2026-11-27): the ONLY copy of the six nav
+   options — same position on every page. The selected item sits in a
+   raised pill (theme colours only, no gradient) that glides to the
+   new item when the selection changes (--bnav-i is the button index;
+   the pill is one button wide, so translateX(100%) is one step).
+   Labels wrap to at most two lines so all six fit a 390px phone. */
+.dash-bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+.dash-bnav{position:relative;display:flex;max-width:640px;margin:0 auto}
+.dash-bnav-pill{position:absolute;top:0;bottom:0;left:0;width:calc(100%/6);background:var(--accent-soft);border-radius:12px;box-shadow:var(--shadow);transform:translateX(calc(var(--bnav-i,0)*100%));transition:transform .25s ease}
+.dash-bnav button{position:relative;z-index:1;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;border:0;border-radius:12px;padding:7px 2px 6px;color:var(--muted);font-family:var(--sans);font-size:11px;font-weight:500;line-height:1.25;cursor:pointer;text-align:center}
+.dash-bnav button svg{width:20px;height:20px;flex:none}
+.dash-bnav button:hover{color:var(--ink)}
+.dash-bnav button.on{color:var(--accent)}
+/* Clearance so no content hides behind the fixed bottom bar. */
+body{padding-bottom:88px}
+.dash-main{display:flex;flex-direction:column;min-width:0}
+.dash-main main.wrap{width:100%}
+.dash-topbar{display:flex;align-items:center;gap:14px;padding:14px 22px;background:var(--bg)}
+.dash-search{flex:1;max-width:520px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.dash-search svg{width:17px;height:17px;color:var(--muted);flex:none}
+.dash-search input{flex:1;border:0;background:transparent;outline:none;font-size:14px;color:var(--ink);min-width:0}
+.dash-top-actions{margin-left:auto;display:flex;align-items:center;gap:10px;position:relative}
+.dash-bell{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.dash-bell svg{width:19px;height:19px}
+.dash-bell-dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--bad);border:2px solid var(--surface)}
+.dash-avatar{width:38px;height:38px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;cursor:pointer}
+.dash-bell-drop{position:absolute;top:48px;right:0;width:320px;max-width:calc(100vw - 32px);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px;z-index:40}
+.dash-bell-drop h3{font-size:15px;margin:0 0 8px;font-family:var(--dash-head)}
+.dash-bell-drop p{margin:0 0 8px;color:var(--muted);font-size:14px}
+.dash-home{max-width:1040px;width:100%;margin:0 auto;padding:18px 16px 8px;display:flex;flex-direction:column;gap:18px}
+.dash-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+
+.dash-hero{background:linear-gradient(120deg,var(--accent-soft) 0%,var(--surface) 55%)}
+.dash-eyebrow{color:var(--accent);font-weight:600;font-size:13px;display:flex;gap:8px;align-items:center;margin:0 0 6px}
+.dash-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block}
+.dash-hero h1{margin:0 0 4px}
+.dash-sub{margin:0 0 16px;color:var(--muted);font-size:16px}
+.dash-hero-note{margin:10px 0 0}
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.dash-stat b{display:block;font-family:var(--dash-head);font-size:26px;font-weight:700}
+.dash-stat span{color:var(--muted);font-size:13px}
+.dash-mid{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px;align-items:start}
+.dash-build h2{margin:0 0 10px}
+.dash-build-step{margin:0 0 10px!important}
+.dash-step-chip{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600;padding:4px 10px;border-radius:99px}
+.dash-build p{margin:0 0 12px;color:var(--muted)}
+.dash-build .btn{margin-top:2px}
+/* Available Mock Tests lives on the Mock exam page now (inside #app). */
+.dash-mock-tests{margin-top:20px}
+.dash-mock-tests>h2{margin:0 0 4px}
+.dash-sec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.dash-sec-card{padding:16px;display:flex;flex-direction:column;gap:8px}
+.dash-sec-card h3{font-size:16px;margin:0;font-weight:600}
+.dash-sec-tag{font-size:12px;font-weight:600;color:var(--accent)}
+.dash-sec-card p{margin:0}
+.dash-sec-card .btn{margin-top:auto}
+.dash-keep{position:sticky;top:140px}
+.dash-keep h2{margin:0 0 8px}
+.dash-keep p{margin:0 0 14px;color:var(--muted)}
+.dash-perf{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:20px}
+.dash-perf-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.dash-perf-head h2{margin:0}
+.dash-perf-tabs{display:flex;gap:4px}
+.dash-perf-tabs button{background:transparent;border:0;border-bottom:2px solid transparent;padding:8px 10px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer}
+.dash-perf-tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.dash-ring-wrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:16px}
+.dash-ring{position:relative;width:132px;height:132px;flex:none}
+.dash-ring svg{width:132px;height:132px;transform:rotate(-90deg)}
+.dash-ring-bg{fill:none;stroke:var(--surface2);stroke-width:11}
+.dash-ring-fg{fill:none;stroke:var(--ok);stroke-width:11;stroke-linecap:round}
+.dash-ring-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--dash-head);font-size:26px;font-weight:700}
+.dash-ring-note{color:var(--muted);font-size:14px;max-width:220px}
+.dash-perf-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.dash-perf-num b{display:block;font-size:20px;font-weight:700;font-family:var(--dash-head)}
+.dash-perf-num span{color:var(--muted);font-size:13px}
+.dash-perf-num small{display:block;color:var(--muted);font-size:12px}
+.dash-bar-row{display:grid;grid-template-columns:210px minmax(0,1fr) 56px;gap:10px;align-items:center;padding:7px 0;font-size:14px}
+.dash-bar{height:9px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.dash-bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.dash-bar-row b{text-align:right;font-variant-numeric:tabular-nums}
+.dash-hist-row{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;background:transparent;border:0;border-top:1px solid var(--line);padding:10px 2px;color:var(--ink);font-size:14px;cursor:pointer}
+.dash-hist-row:first-of-type{border-top:0}
+.dash-hist-row:hover{color:var(--accent)}
+.dash-perf-side h3{font-size:17px;margin:0 0 8px}
+.dash-perf-side p{color:var(--muted);font-size:14px;margin:0 0 14px}
+/* ---- Light-mode support 2026-11-27 (added to the dashboard patch layer).
+   The app's own light theme (its :root vars) is the base; these rules fix
+   the places where a dark-only override, or a hardcoded colour, broke
+   readability in one of the two themes. Nothing here touches the sealed
+   app source (xs1 / payloads / loader) or the app's own light values. */
+:root[data-theme="dark"] .opt.sel{background:var(--accent-soft)}
+:root[data-theme="dark"] .opt.ok{background:var(--ok-soft)}
+:root[data-theme="dark"] .opt.bad{background:var(--bad-soft)}
+:root:not([data-theme="dark"]) .opt.sel{background:var(--accent-soft)}
+:root:not([data-theme="dark"]) .opt.ok{background:var(--ok-soft)}
+:root:not([data-theme="dark"]) .opt.bad{background:var(--bad-soft)}
+/* Dark option badges: white letters on the light --ok/--bad fills are
+   1.9:1 / 2.3:1 (unreadable); dark ink on the same fills is 7+:1.
+   Light keeps white (4.8:1 / 5.9:1). Same rules cover the review screen,
+   which reuses .opt. */
+:root[data-theme="dark"] .opt.ok .L{color:var(--accent-ink)}
+:root[data-theme="dark"] .opt.bad .L{color:var(--accent-ink)}
+/* Footer browser note: hardcoded reds/green fail in one theme or the
+   other (#ff6666 is 3.0:1 on white; #008000 is ~3.5:1 on dark). Use the
+   app's theme-aware --ok/--bad instead, readable in both. */
+.browser-note{color:var(--ok)}
+.browser-note .ext-line{color:var(--bad)}
+.browser-note .warn-line{color:var(--bad)}
+/* Top-nav theme toggle: sun/moon pill (as in the dashboard screenshot)
+   + a label naming the mode it switches to. The current theme's glyph
+   is highlighted; the other is dimmed. */
+.dash-topnav-actions #dashThemeBtn{display:flex;align-items:center;gap:10px}
+.dash-theme-ico{display:inline-flex;gap:7px;font-size:15px;line-height:1;flex:none}
+.dash-theme-ico .dash-ico-sun,.dash-theme-ico .dash-ico-moon{opacity:.42}
+.dash-theme-ico .on{opacity:1;color:var(--accent)}
+/* Test screen: dashboard chrome hides, the app's own testbar becomes the
+   top bar and its palette becomes a persistent left column. The app's
+   own labels are kept (End test / See results = Submit, Flag = Mark for
+   Review) — nothing is renamed. The header-progress bar stays governed
+   by its own patch (hidden in test, shown on results/review). */
+body.dash-in-test .dash-topnav,body.dash-in-test .dash-bottomnav,body.dash-in-test .dash-topbar,body.dash-in-test #dashHome,body.dash-in-test header.top,body.dash-in-test .free-strip,body.dash-in-test footer.foot{display:none!important}
+body.dash-in-test #app{display:grid;grid-template-columns:232px minmax(0,1fr);gap:16px;align-items:start}
+body.dash-in-test #app .testbar{grid-column:1/-1;position:sticky;top:0;z-index:10}
+body.dash-in-test #app>.card{grid-column:2;min-width:0}
+body.dash-in-test #palWrap .card{margin-bottom:0}
+@media(min-width:901px){body.dash-in-test #palWrap{display:block!important;grid-column:1;grid-row:2}}
+@media(max-width:900px){body.dash-in-test #app{grid-template-columns:minmax(0,1fr)}body.dash-in-test #app>.card{grid-column:1}}
+/* ---- Focus mode, round 2 (2026-11-27): red Exit + End, compact test
+   text so a question + 4 options fit one phone screen. Test-only:
+   dashboard sizes are untouched. Red fill + white text, verified
+   >=4.5:1 in both themes (#C62828 light, #D32F2F dark). ---- */
+body.dash-in-test #endBtn,body.dash-in-test #dashExitBtn{background:#c62828;border-color:#c62828;color:#fff;font-weight:600}
+:root[data-theme="dark"] body.dash-in-test #endBtn,:root[data-theme="dark"] body.dash-in-test #dashExitBtn{background:#d32f2f;border-color:#d32f2f}
+body.dash-in-test #endBtn:hover,body.dash-in-test #dashExitBtn:hover{filter:brightness(1.08)}
+body.dash-in-test #endBtn:focus-visible,body.dash-in-test #dashExitBtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+body.dash-in-test #app .qbody{font-size:16px;line-height:1.5}
+body.dash-in-test #app .opt{padding:10px 12px}
+body.dash-in-test #app .opt .T{font-size:14px;line-height:1.45}
+body.dash-in-test #app .opts{gap:8px;margin-top:12px}
+body.dash-in-test #app>.card{padding:14px}
+body.dash-in-test #app .testbar{padding:8px 0 10px;margin-bottom:10px}
+body.dash-in-test #app .qmeta{font-size:13px}
+/* Header progress bar now lives in the topbar (moved by the patch);
+   it only shows on results/review, governed by its own patch. */
+.dash-topbar .header-progress-wrap{flex:0 1 150px;min-width:110px}
+@media(max-width:1100px){.dash-sec-grid{grid-template-columns:repeat(2,1fr)}.dash-stats{grid-template-columns:repeat(2,1fr)}.dash-mid{grid-template-columns:minmax(0,1fr)}.dash-keep{position:static}.dash-perf{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:860px){.dash-sec-grid{grid-template-columns:minmax(0,1fr)}.dash-topbar{padding:12px}.dash-search{max-width:none}}
+/* Phones: the top nav row stays one line — brand mark only, theme /
+   Log out collapse to icons, greeting chip hides (the avatar in the
+   topbar already shows the saved initial). The six named nav items
+   keep their names and scroll horizontally — nothing clips or wraps. */
+@media(max-width:640px){.dash-topnav{padding:8px 10px;gap:8px}.dash-topnav-brand small{display:none}.dash-topnav-brand b{font-size:15px}.dash-topnav-actions .dash-theme-label{display:none}.dash-topnav-actions #dashLogoutSlot .btn span{display:none}.dash-topnav-actions #dashLogoutSlot .btn{padding:8px 10px}.dash-profile{display:none}.dash-stats{grid-template-columns:repeat(2,1fr);gap:10px}.dash-stat{padding:12px 10px}.dash-stat b{font-size:22px}.dash-stat span{font-size:12px}}
+
+/* DOM order puts #app before #dashHome (so the app's document-wide
+   #id lookups in renderBuild resolve to the live stack copy, not the
+   Dashboard's moved copy). Flex order keeps the visual stacking
+   exactly as before: home, strip, app, foot. */
+#dashMain > #dashHome{order:1}
+#dashMain > .free-strip{order:2}
+#dashMain > #app{order:3}
+#dashMain > footer.foot{order:4}
+</style>
+<script id="dashPatch">
+(function(){
+  "use strict";
+  /* Dashboard rearrangement 2026-11-27, v5 — DOM-only patch, outside the
+     sealed app source. Top bar (brand + profile + Log out + theme)
+     and a FIXED BOTTOM navigation bar around the existing app: the
+     six nav options live ONLY in the bottom bar (2026-11-27 — they
+     were hidden in the top nav's horizontal scroll on the Mock exam
+     page, and the Dashboard's wrapped grid duplicated them, so both
+     were removed at the user's ask: "don't need as 2 of them").
+     The selected bottom item sits in a raised pill (theme colours
+     only, no gradient) that glides to the new item when the selection
+     changes. The 100-Q mock stays reachable from the bottom bar's
+     Mock exam item via the Mock Tests page.
+     the app's own tab bar is hidden (kept in the DOM so its machinery,
+     incl. the "Leave this test?" confirm, keeps working).
+     The Dashboard home is
+     the landing view under "Build test"; the Mock exam page carries the
+     Available Mock Tests section. It NEVER writes cmaP1QB.v1 (read-only)
+     and never touches .opts, the shuffle, the finish check, history or
+     review code — those patches keep running untouched. Every dashboard
+     number comes from the real attempts in cmaP1QB.v1; with no attempts
+     the stats show honest empty states. Section counts come from the
+     real bank via window.__DQ (fallback: the section counts in the
+     Build tree).
+     Focus mode: while a test runs, all dashboard chrome hides and only
+     the test shows, with a red Exit (app's leave flow) and a red End
+     (app's End confirm + unanswered count). Test screen only uses
+     compact fonts so a question + 4 options fit one phone screen.
+     Profile Save net (bug 2026-11-27): the app's Save is swallowed by
+     a capture-phase animation handler that defers the real save+close
+     by 240ms; on the phone the save landed but the dialog stayed open.
+     After any Save/Skip tap, if a profile is stored the dialog is
+     forced closed; if nothing was stored and the fields are valid, the
+     profile is stored and the dialog closed. No-op when the normal
+     path already worked. */
+  var LS = 'cmaP1QB.v1';
+  var SECTIONS = [
+    {s:'A', name:'External Financial Reporting Decisions'},
+    {s:'B', name:'Planning, Budgeting & Forecasting'},
+    {s:'C', name:'Performance Management'},
+    {s:'D', name:'Cost Management'},
+    {s:'E', name:'Internal Controls'},
+    {s:'F', name:'Technology & Analytics'}
+  ];
+  var NAVMAP = {build:'build', mock:'mock', flashcards:'flashcards', material:'material', progress:'progress', about:'about'};
+  var appEl = document.getElementById('app');
+  if(!appEl) return;
+  var header = document.querySelector('header.top');
+  var strip = document.querySelector('.free-strip');
+  var foot = document.querySelector('footer.foot');
+  var rootEl = document.documentElement;
+
+  function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function lsGet(k){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
+  function readStore(){ var s = lsGet(LS); return s || {attempts:[], qstat:{}, session:null}; }
+  function fmtDate(iso){ try{ return new Date(iso).toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); }catch(e){ return ''; } }
+  function fmtDur(sec){
+    sec = Math.max(0, Math.round(sec || 0));
+    var tm = Math.round(sec / 60);
+    var h = Math.floor(tm / 60), m = tm % 60;
+    if(h) return h + 'h' + (m ? ' ' + m + 'm' : '');
+    return m + 'm';
+  }
+  function newEvent(name){
+    var ev;
+    try{ ev = new Event(name, {bubbles:true}); }
+    catch(e){ ev = document.createEvent('Event'); ev.initEvent(name, true, false); }
+    return ev;
+  }
+
+  /* Fonts: Plus Jakarta Sans headings + Inter body, system fallback offline. */
+  try{
+    if(!document.querySelector('link[data-dash-fonts]')){
+      var lk = document.createElement('link');
+      lk.setAttribute('data-dash-fonts', '1');
+      lk.rel = 'stylesheet';
+      lk.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;650;700;800&display=swap';
+      document.head.appendChild(lk);
+    }
+  }catch(e){}
+
+  /* Dark mode is the default: first visit (no stored theme) starts dark.
+     An explicit theme choice stored earlier is respected. The top-nav
+     sun/moon toggle switches themes (light is fully supported — see the
+     light-mode fixes in dashStyle); the choice persists in
+     cmaP1QB.theme via the app's own theme button. */
+  try{
+    if(!localStorage.getItem('cmaP1QB.theme')){
+      localStorage.setItem('cmaP1QB.theme', 'dark');
+      rootEl.setAttribute('data-theme', 'dark');
+    }
+  }catch(e){}
+
+  /* ---------- shell: top navigation + topbar, existing nodes moved in ----
+     The app's header (brand + tab bar + profile chip + Log out + Theme
+     + header progress bar) is hidden as a bar: the tab bar itself stays
+     in the DOM (hidden) so the app's tab machinery and its "Leave this
+     test?" confirm keep working, while the chip + Log out + theme toggle
+     move into the top nav bar and the header progress bar moves into the
+     topbar, where the existing visibility patch (hidden in tests, shown
+     on results/review) keeps governing it via its own display style. */
+  var shell = document.createElement('div');
+  shell.className = 'dash-shell';
+  shell.id = 'dashShell';
+  var topnav = document.createElement('div');
+  topnav.className = 'dash-topnav';
+  topnav.id = 'dashTopnav';
+  topnav.innerHTML =
+    '<div class="dash-topnav-brand"><span class="dash-logo-mark" aria-hidden="true">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9L12 4 2 9l10 5 10-5z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/><path d="M22 9v5"/></svg></span>'
+    + '<span><b>CMA USA</b><small>Mock Tests</small></span></div>'
+    + '<div class="dash-topnav-actions"><div class="dash-profile" id="dashProfileSlot"></div><div id="dashLogoutSlot"></div><button type="button" class="btn" id="dashThemeBtn" aria-label="Switch theme"><span class="dash-theme-ico" aria-hidden="true"><span class="dash-ico-sun">\u2600</span><span class="dash-ico-moon">\u263E</span></span><span class="dash-theme-label">Light mode</span></button></div>';
+  var main = document.createElement('div');
+  main.className = 'dash-main';
+  main.id = 'dashMain';
+  var topbar = document.createElement('div');
+  topbar.className = 'dash-topbar';
+  topbar.innerHTML =
+    '<div class="dash-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'
+    + '<input type="text" id="dashSearch" placeholder="Search tests, topics..." aria-label="Search tests and topics" autocomplete="off"></div>'
+    + '<div class="dash-top-actions">'
+    + '<button type="button" class="dash-bell" id="dashBell" aria-label="Notifications" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="dash-bell-dot" id="dashBellDot" hidden></span></button>'
+    + '<button type="button" class="dash-avatar" id="dashAvatar" title="Your profile">A</button>'
+    + '<div class="dash-bell-drop" id="dashBellDrop" hidden></div>'
+    + '</div>';
+  var home = document.createElement('section');
+  home.className = 'dash-home';
+  home.id = 'dashHome';
+  home.innerHTML =
+    '<div class="dash-stats">'
+    + '<div class="dash-card dash-stat"><b id="dashStatTotal">0</b><span>Total Tests</span></div>'
+    + '<div class="dash-card dash-stat"><b id="dashStatDone">0</b><span>Completed</span></div>'
+    + '<div class="dash-card dash-stat"><b id="dashStatAvg">&mdash;</b><span>Avg Score</span></div>'
+    + '<div class="dash-card dash-stat"><b id="dashStatTime">0m</b><span>Study Time</span></div>'
+    + '</div>'
+    + '<p class="muted small" id="dashStatsEmpty">No tests yet &mdash; start your first mock.</p>'
+    + '<div class="dash-card dash-perf" id="dashPerf"><div><div class="dash-perf-head"><h2>Your Performance</h2>'
+    + '<div class="dash-perf-tabs" role="tablist">'
+    + '<button type="button" data-ptab="overview" class="on">Overview</button>'
+    + '<button type="button" data-ptab="sections">Section-wise</button>'
+    + '<button type="button" data-ptab="history">History</button>'
+    + '</div></div>'
+    + '<div id="dashPerfOverview"><div class="dash-ring-wrap"><div class="dash-ring">'
+    + '<svg viewBox="0 0 120 120" aria-hidden="true"><circle class="dash-ring-bg" cx="60" cy="60" r="52"></circle>'
+    + '<circle class="dash-ring-fg" id="dashRingFg" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle></svg>'
+    + '<span class="dash-ring-pct" id="dashRingPct">&mdash;</span></div>'
+    + '<p class="dash-ring-note" id="dashRingNote">Overall score across all your tests. No tests yet &mdash; start your first mock.</p></div>'
+    + '<div class="dash-perf-nums"><div class="dash-perf-num"><b id="dashPerfCorrect">&mdash;</b><span>Correct</span></div>'
+    + '<div class="dash-perf-num"><b id="dashPerfWrong">&mdash;</b><span>Incorrect</span><small id="dashPerfSkipped"></small></div>'
+    + '<div class="dash-perf-num"><b id="dashPerfTime">0m</b><span>Time Taken</span><small>Total across tests</small></div></div></div>'
+    + '<div id="dashPerfSections" hidden><div id="dashSecBars"></div><p class="muted small" id="dashSecBarsEmpty">No tests yet &mdash; section bars appear after your first test.</p></div>'
+    + '<div id="dashPerfHistory" hidden><div id="dashHistList"></div><p class="muted small" id="dashHistEmpty">No tests yet &mdash; your test history will list here.</p></div>'
+    + '</div>'
+    + '</div>';
+
+
+  /* Fixed bottom navigation (2026-11-27): the ONLY copy of the six nav
+     options. The top nav no longer carries them (hidden in its
+     horizontal scroll on the Mock exam page) and the Dashboard's
+     wrapped grid was removed at the user's ask — "don't need as 2
+     of them". Same icon + name as the old top nav; the selected item
+     sits in a raised pill (theme colours, no gradient) that glides
+     to the new item when the selection changes. Appended to the
+     shell at assembly, so it stays fixed at the bottom on every page. */
+  var bottomnav = document.createElement('div');
+  bottomnav.className = 'dash-bottomnav';
+  bottomnav.id = 'dashBottomnav';
+  bottomnav.innerHTML =
+    '<nav class="dash-bnav" aria-label="Sections"><span class="dash-bnav-pill" aria-hidden="true"></span>'
+    + '<button type="button" data-bnav="build"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg><span>Build test</span></button>'
+    + '<button type="button" data-bnav="mock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Mock exam</span></button>'
+    + '<button type="button" data-bnav="flashcards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg><span>Flashcards</span></button>'
+    + '<button type="button" data-bnav="material"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg><span>Study material</span></button>'
+    + '<button type="button" data-bnav="progress"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Progress</span></button>'
+    + '<button type="button" data-bnav="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg><span>About</span></button>'
+    + '</nav>';
+
+  if(header && header.parentNode) header.parentNode.insertBefore(shell, header);
+  else document.body.insertBefore(shell, document.body.firstChild);
+  shell.appendChild(main);
+  shell.appendChild(bottomnav);
+  main.appendChild(topnav);
+  main.appendChild(topbar);
+  if(header) main.appendChild(header);
+  /* #app goes BEFORE #dashHome in main's DOM order: the app's own
+     renderBuild binds its handlers with document-wide #id lookups,
+     so they must resolve to the live stack copy, not the Dashboard's
+     moved copy (which arrangeDashForm deletes on the next render).
+     Flex order (dashStyle) keeps the visual stacking exactly as
+     before: home, strip, app, foot. */
+  main.appendChild(appEl);
+  main.appendChild(home);
+  if(strip) main.appendChild(strip);
+  if(foot) main.appendChild(foot);
+  /* Move the header's live pieces out, then hide the bar itself (the
+     tab buttons stay in the DOM, hidden, for the app's machinery). */
+  try{
+    var chipEl = document.getElementById('profileChip');
+    var profSlot = document.getElementById('dashProfileSlot');
+    if(chipEl && profSlot) profSlot.appendChild(chipEl);
+    var loEl = document.getElementById('logoutBtn');
+    var loSlot = document.getElementById('dashLogoutSlot');
+    if(loEl && loSlot){
+      loSlot.appendChild(loEl);
+      /* Icon + span label so the label can hide on phones (icon-only). */
+      loEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Log out</span>';
+    }
+    var hpWrap = document.querySelector('.header-progress-wrap');
+    var topActions = topbar.querySelector('.dash-top-actions');
+    if(hpWrap && topActions) topbar.insertBefore(hpWrap, topActions);
+    if(header) header.style.display = 'none';
+  }catch(e){}
+
+  var searchInput = document.getElementById('dashSearch');
+  var bellBtn = document.getElementById('dashBell');
+  var bellDot = document.getElementById('dashBellDot');
+  var bellDrop = document.getElementById('dashBellDrop');
+  var avatarBtn = document.getElementById('dashAvatar');
+  var themeBtn2 = document.getElementById('dashThemeBtn');
+
+  /* ---------- state ---------- */
+  var dashPerfTarget = false; /* bottom-bar "Progress" shows the Dashboard's
+     Performance panel (2026-11-27): the panel lives in exactly one place
+     (the Dashboard). True while the Dashboard is showing it, so the
+     pill stays on Progress (see renderDash). */
+  var lastSecSig = '';
+  var lastSig = '';
+  var lastInTest = false;
+
+  /* ---------- real data ---------- */
+  function secCount(sec){
+    try{
+      if(typeof window.__DQ === 'function'){
+        var qs = window.__DQ(sec);
+        if(qs && qs.length) return qs.length;
+      }
+    }catch(e){}
+    try{
+      var dets = document.querySelectorAll('#tree details summary');
+      for(var i = 0; i < dets.length; i++){
+        var tx = dets[i].textContent || '';
+        if(tx.indexOf('Section ' + sec + ' ') === 0 || tx.indexOf('Section ' + sec + '\u00a0') !== -1){
+          var m = /(\d+)\s+questions/.exec(tx);
+          if(m) return parseInt(m[1], 10);
+        }
+      }
+    }catch(e){}
+    return 0;
+  }
+  function totals(atts){
+    var t = {q:0, c:0, time:0, skipped:0, per:{}};
+    for(var i = 0; i < atts.length; i++){
+      var a = atts[i];
+      t.q += a.total || 0;
+      t.c += a.correct || 0;
+      t.time += a.timeSec || 0;
+      t.skipped += a.skipped || 0;
+      var per = a.perSec || {};
+      for(var k = 0; k < SECTIONS.length; k++){
+        var p = per[SECTIONS[k].s];
+        if(!p || !p.total) continue;
+        if(!t.per[SECTIONS[k].s]) t.per[SECTIONS[k].s] = {c:0, t:0};
+        t.per[SECTIONS[k].s].c += p.correct || 0;
+        t.per[SECTIONS[k].s].t += p.total || 0;
+      }
+    }
+    return t;
+  }
+  /* Available Mock Tests now lives on the Mock exam page (tab 'mock'),
+     right after the mock-exam entry card. Re-injected whenever the app
+     rebuilds that view; removed everywhere else. */
+  function renderSecCards(){
+    var grid = document.getElementById('dashMockSecGrid');
+    if(!grid) return;
+    var counts = [];
+    for(var i = 0; i < SECTIONS.length; i++) counts.push(secCount(SECTIONS[i].s));
+    var sig = counts.join(',');
+    if(sig === lastSecSig && grid.children.length) return;
+    lastSecSig = sig;
+    var html = '';
+    for(var j = 0; j < SECTIONS.length; j++){
+      var n = counts[j];
+      html += '<div class="dash-card dash-sec-card" data-name="' + esc(('Section ' + SECTIONS[j].s + ' ' + SECTIONS[j].name).toLowerCase()) + '">'
+        + '<span class="dash-sec-tag">Part 1 &ndash; Section ' + SECTIONS[j].s + '</span>'
+        + '<h3>' + esc(SECTIONS[j].name) + '</h3>'
+        + '<p class="muted small">' + (n ? esc(String(n)) + ' questions in bank' : 'Questions in bank') + '</p>'
+        + '<button type="button" class="btn primary dash-sec-start" data-sec="' + SECTIONS[j].s + '">Start Test &rarr;</button></div>';
+    }
+    grid.innerHTML = html;
+    applySearchFilter();
+  }
+  function ensureMockTests(){
+    var inTest = !!appEl.querySelector('.testbar');
+    var inResults = !!appEl.querySelector('.score');
+    var inReview = !!appEl.querySelector('.review-q') || !!appEl.querySelector('#backBtn');
+    var cur = document.querySelector('#tabs button[aria-current="page"]');
+    var activeTab = cur ? cur.getAttribute('data-v') : 'build';
+    var existing = document.getElementById('dashMockTests');
+    if(activeTab !== 'mock' || inTest || inResults || inReview){
+      if(existing && existing.parentNode) existing.parentNode.removeChild(existing);
+      return;
+    }
+    var stack = appEl.querySelector('.stack');
+    if(!stack) return;
+    if(!existing){
+      existing = document.createElement('div');
+      existing.className = 'dash-mock-tests';
+      existing.id = 'dashMockTests';
+      existing.innerHTML = '<h2>Available Mock Tests</h2><div class="dash-sec-grid" id="dashMockSecGrid"></div>'
+        + '<p class="muted" id="dashMockSecEmpty" hidden>No tests match your search.</p>';
+      var first = stack.querySelector('.card');
+      if(first && first.nextSibling) stack.insertBefore(existing, first.nextSibling);
+      else stack.appendChild(existing);
+      existing.addEventListener('click', function(e){
+        var b = e.target && e.target.closest ? e.target.closest('.dash-sec-start') : null;
+        if(b) startSectionTest(b.getAttribute('data-sec'));
+      });
+    }
+    renderSecCards();
+  }
+  function applySearchFilter(){
+    var grid = document.getElementById('dashMockSecGrid');
+    if(!grid) return;
+    var q = searchInput ? (searchInput.value || '').replace(/^\s+|\s+$/g, '').toLowerCase() : '';
+    var cards = grid.querySelectorAll('.dash-sec-card');
+    var shown = 0;
+    for(var i = 0; i < cards.length; i++){
+      var hit = !q || (cards[i].getAttribute('data-name') || '').indexOf(q) !== -1;
+      cards[i].style.display = hit ? '' : 'none';
+      if(hit) shown++;
+    }
+    var empty = document.getElementById('dashMockSecEmpty');
+    if(empty) empty.hidden = shown !== 0;
+  }
+  function renderBell(st){
+    var atts = st.attempts || [];
+    var html = '<h3>Notifications</h3>';
+    if(st.session){
+      var s = st.session;
+      var ans = 0;
+      for(var i = 0; i < (s.answers || []).length; i++){ if(s.answers[i] !== null) ans++; }
+      html += '<p>A test is in progress: ' + ans + ' of ' + ((s.ids || []).length) + ' answered.</p>'
+        + '<button type="button" class="btn primary" id="dashBellResume">Resume test</button>';
+    } else if(atts.length){
+      var last = atts[atts.length - 1];
+      html += '<p>Last test: ' + esc(last.label || 'Test') + ' &mdash; ' + last.correct + ' of ' + last.total + ' (' + last.pct + '%) on ' + esc(fmtDate(last.date)) + '.</p>';
+    } else {
+      html += '<p>No notifications yet. Your latest test and any test in progress will show here.</p>';
+    }
+    bellDrop.innerHTML = html;
+    var rb = document.getElementById('dashBellResume');
+    if(rb) rb.onclick = function(){
+      bellDrop.hidden = true;
+      bellBtn.setAttribute('aria-expanded', 'false');
+      goTab('build');
+      setTimeout(function(){
+        var r = document.getElementById('resumeBtn');
+        if(r) r.click();
+      }, 150);
+    };
+    if(bellDot) bellDot.hidden = !st.session;
+  }
+  function renderPerf(st, t){
+    var atts = st.attempts || [];
+    var ringFg = document.getElementById('dashRingFg');
+    var ringPct = document.getElementById('dashRingPct');
+    var ringNote = document.getElementById('dashRingNote');
+    var C = 326.7;
+    if(t.q){
+      var pct = Math.round(t.c / t.q * 100);
+      if(ringFg) ringFg.style.strokeDashoffset = String(C * (1 - pct / 100));
+      if(ringPct) ringPct.textContent = pct + '%';
+      if(ringNote) ringNote.textContent = 'Overall score across ' + atts.length + ' test' + (atts.length === 1 ? '' : 's') + ' (' + t.c + ' correct of ' + t.q + ' questions).';
+      document.getElementById('dashPerfCorrect').textContent = t.c + ' of ' + t.q;
+      var wrong = t.q - t.c - t.skipped;
+      document.getElementById('dashPerfWrong').textContent = wrong + ' of ' + t.q;
+      document.getElementById('dashPerfSkipped').textContent = t.skipped ? t.skipped + ' skipped' : '';
+      document.getElementById('dashPerfTime').textContent = fmtDur(t.time);
+    } else {
+      if(ringFg) ringFg.style.strokeDashoffset = String(C);
+      if(ringPct) ringPct.textContent = '\u2014';
+      if(ringNote) ringNote.textContent = 'Overall score across all your tests. No tests yet \u2014 start your first mock.';
+      document.getElementById('dashPerfCorrect').textContent = '\u2014';
+      document.getElementById('dashPerfWrong').textContent = '\u2014';
+      document.getElementById('dashPerfSkipped').textContent = '';
+      document.getElementById('dashPerfTime').textContent = '0m';
+    }
+    var bars = document.getElementById('dashSecBars');
+    var barsEmpty = document.getElementById('dashSecBarsEmpty');
+    var bhtml = '';
+    var anyBar = false;
+    for(var i = 0; i < SECTIONS.length; i++){
+      var p = t.per[SECTIONS[i].s];
+      if(p && p.t){
+        anyBar = true;
+        var pc = Math.round(p.c / p.t * 100);
+        bhtml += '<div class="dash-bar-row"><span>Section ' + SECTIONS[i].s + ' &middot; ' + esc(SECTIONS[i].name) + '</span>'
+          + '<span class="dash-bar"><i style="width:' + pc + '%"></i></span><b>' + pc + '%</b></div>';
+      } else {
+        bhtml += '<div class="dash-bar-row"><span>Section ' + SECTIONS[i].s + ' &middot; ' + esc(SECTIONS[i].name) + '</span>'
+          + '<span class="dash-bar"><i style="width:0%"></i></span><b>&mdash;</b></div>';
+      }
+    }
+    if(bars) bars.innerHTML = bhtml;
+    if(barsEmpty) barsEmpty.hidden = anyBar;
+    var hist = document.getElementById('dashHistList');
+    var histEmpty = document.getElementById('dashHistEmpty');
+    var hhtml = '';
+    var list = atts.slice(-10).reverse();
+    for(var j = 0; j < list.length; j++){
+      var a = list[j];
+      hhtml += '<button type="button" class="dash-hist-row" data-hist="' + j + '"><span><b>' + esc(fmtDate(a.date)) + '</b> &middot; ' + esc(a.label || 'Test') + '</span>'
+        + '<span><b>' + a.correct + ' / ' + a.total + '</b> (' + a.pct + '%)' + (a.timeSec ? ' &middot; ' + esc(fmtDur(a.timeSec)) : '') + '</span></button>';
+    }
+    if(hist) hist.innerHTML = hhtml;
+    if(histEmpty) histEmpty.hidden = list.length !== 0;
+  }
+
+  /* ---------- setup form on the Dashboard (2026-11-27) ----------
+     The setup form IS the main thing on the Dashboard: the app's own
+     "1 · Set it up" card and its "2 · Choose sections" card (plus the
+     FREE MOCK EXAM intro card) are moved out of the app's build stack
+     into the Dashboard home, right after the stat cards and before the
+     Performance panel — so a visitor can set up a custom mock at once,
+     with no tap. The "Build a test" teaser card is gone (it was a
+     duplicate entry point) and both Keep-Going cards are gone too.
+     Runs on every renderDash while the home is shown; a no-op when the
+     cards are already in place, so moving them does not loop the
+     MutationObserver. On an app re-render, fresh cards appear in the
+     stack: the stale copies in the home are removed first.
+     The pick card is shown by default (the old flow hid it until Start
+     was pressed); the app itself alerts "Pick at least one unit first."
+     if Start is pressed with nothing ticked, so nothing is lost. */
+  function arrangeDashForm(){
+    var stack = appEl.querySelector('.stack');
+    var perf = document.getElementById('dashPerf');
+    if(!perf) return;
+    var freshSetup = stack ? stack.querySelector('.card.flow-setup') : null;
+    var freshPick = stack ? stack.querySelector('.card.flow-pick') : null;
+    var freshIntro = stack ? stack.querySelector('.card.intro-compact') : null;
+    if(freshSetup || freshPick || freshIntro){
+      var stale = home.querySelectorAll('.flow-setup, .flow-pick, .intro-compact');
+      for(var s = 0; s < stale.length; s++){
+        if(stale[s].parentNode) stale[s].parentNode.removeChild(stale[s]);
+      }
+    }
+    var setup = freshSetup || home.querySelector('.card.flow-setup');
+    var pick = freshPick || home.querySelector('.card.flow-pick');
+    var intro = freshIntro || home.querySelector('.card.intro-compact');
+    if(!setup && !pick && !intro) return;
+    /* Desired order in the home: stats, statsEmpty, setup, pick, intro, perf. */
+    var want = [];
+    if(setup) want.push(setup);
+    if(pick) want.push(pick);
+    if(intro) want.push(intro);
+    var perfIdx = Array.prototype.indexOf.call(home.children, perf);
+    var inPlace = true;
+    for(var i = 0; i < want.length; i++){
+      if(want[i].parentNode !== home || home.children[perfIdx - want.length + i] !== want[i]){ inPlace = false; break; }
+    }
+    if(!inPlace){
+      for(var j = 0; j < want.length; j++) home.insertBefore(want[j], perf);
+      /* The pool counters were tallied while the stale tree still
+         existed; re-fire one unit change so they recount the live
+         tree only. The unitBox handler only re-derives its section
+         flag and refreshes the counters — it never changes tick state. */
+      /* refreshPool clamps the count box to the pool size, so with
+         nothing selected it would force it to 1 — save it first and
+         put it back when nothing is ticked (patchBuild does the same). */
+      var cntEl = document.getElementById('cnt');
+      var savedCnt = cntEl ? cntEl.value : null;
+      var ub = document.querySelector('.unitBox');
+      if(ub) ub.dispatchEvent(newEvent('change'));
+      if(cntEl && savedCnt !== null && !document.querySelector('.unitBox:checked')) cntEl.value = savedCnt;
+    }
+    if(pick) pick.style.display = '';
+  }
+
+  function renderDash(){
+    var st = readStore();
+    var atts = st.attempts || [];
+    var t = totals(atts);
+    var inTest = !!appEl.querySelector('.testbar');
+    lastInTest = inTest;
+    var inResults = !!appEl.querySelector('.score');
+    var inReview = !!appEl.querySelector('.review-q') || !!appEl.querySelector('#backBtn');
+    var cur = document.querySelector('#tabs button[aria-current="page"]');
+    var activeTab = cur ? cur.getAttribute('data-v') : 'build';
+    var sig = atts.length + '|' + (atts.length ? atts[atts.length - 1].date : '') + '|' + (st.session ? 'sess' : 'nosess') + '|' + inTest + '|' + inResults + '|' + inReview + '|' + activeTab + '|' + (rootEl.getAttribute('data-theme') || '');
+    var sigChanged = sig !== lastSig;
+    lastSig = sig;
+    document.body.classList.toggle('dash-in-test', inTest);
+    /* Sticky test bar offset: the visible sticky top is now the top
+       navigation bar (the topbar scrolls away with the page). */
+    if(inTest) rootEl.style.setProperty('--hdrH', '0px');
+    else {
+      var tn = document.querySelector('.dash-topnav');
+      rootEl.style.setProperty('--hdrH', ((tn ? tn.offsetHeight : 56) + 12) + 'px');
+    }
+    /* Dashboard home is the landing view under "Build test"; the setup
+       flow itself shows when the home's Build-a-test card opened it. */
+    var showHome = activeTab === 'build' && !inTest && !inResults && !inReview;
+    home.classList.toggle('dash-hidden', !showHome);
+    ensureMockTests();
+    if(showHome) arrangeDashForm();
+    if(inTest) patchTest();
+    /* Bottom nav selection: the 'on' button gets the accent colour
+       and the pill glides to it (--bnav-i is the button index; the
+       pill is one button wide, so translateX(100%) is one step). */
+    var bnavEl = bottomnav.querySelector('.dash-bnav');
+    var navBtns = bottomnav.querySelectorAll('.dash-bnav button');
+    var activeIdx = 0;
+    for(var i = 0; i < navBtns.length; i++){
+      var nb = navBtns[i].getAttribute('data-bnav');
+      var isOn = (dashPerfTarget && showHome) ? nb === 'progress' : NAVMAP[nb] === activeTab;
+      navBtns[i].classList.toggle('on', isOn);
+      if(isOn) activeIdx = i;
+    }
+    if(bnavEl) bnavEl.style.setProperty('--bnav-i', String(activeIdx));
+    var dark = rootEl.getAttribute('data-theme') === 'dark';
+    if(themeBtn2){
+      /* Sun/moon pill (screenshot): highlight the CURRENT theme's glyph,
+         label names the mode the button switches to. */
+      var lb = themeBtn2.querySelector('.dash-theme-label');
+      if(lb) lb.textContent = dark ? 'Light mode' : 'Dark mode';
+      var sun = themeBtn2.querySelector('.dash-ico-sun');
+      var moon = themeBtn2.querySelector('.dash-ico-moon');
+      if(sun) sun.classList.toggle('on', !dark);
+      if(moon) moon.classList.toggle('on', dark);
+    }
+    try{
+      var prof = lsGet('cmaP1QB.profile.v1');
+      var nm = prof && prof.name ? String(prof.name) : '';
+      if(avatarBtn) avatarBtn.textContent = nm ? nm.charAt(0).toUpperCase() : 'A';
+      var slot = document.getElementById('dashProfileSlot');
+      if(slot) slot.style.display = nm ? '' : 'none';
+    }catch(e){}
+    if(!sigChanged) return;
+    renderSecCards();
+    document.getElementById('dashStatTotal').textContent = String(atts.length);
+    document.getElementById('dashStatDone').textContent = String(atts.length);
+    document.getElementById('dashStatAvg').textContent = t.q ? Math.round(t.c / t.q * 100) + '%' : '\u2014';
+    document.getElementById('dashStatTime').textContent = fmtDur(t.time);
+    var statsEmpty = document.getElementById('dashStatsEmpty');
+    if(statsEmpty) statsEmpty.hidden = atts.length !== 0;
+    renderPerf(st, t);
+    renderBell(st);
+  }
+
+  /* ---------- navigation ---------- */
+  function goTab(v){
+    dashPerfTarget = false;
+    var b = document.querySelector('#tabs button[data-v="' + v + '"]');
+    if(b) b.click();
+    try{ window.scrollTo(0, 0); }catch(e){}
+    setTimeout(renderDash, 80);
+  }
+  /* Progress (bottom bar) shows the Dashboard's Performance panel: the
+     panel lives in exactly one place (the Dashboard) since 2026-11-27.
+     The Dashboard IS the Build test view, so open it and scroll the
+     panel into view; the pill stays on Progress while the Dashboard is
+     showing it (see renderDash). */
+  function goPerfPanel(){
+    goTab('build');
+    dashPerfTarget = true;
+    setTimeout(function(){
+      var p = document.getElementById('dashPerf');
+      if(p){ try{ p.scrollIntoView(); }catch(e){} }
+    }, 250);
+  }
+  function startMock(){
+    goTab('mock');
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var mb = document.getElementById('mockBtn');
+      if(mb){ clearInterval(iv); mb.click(); return; }
+      if(tries >= 20) clearInterval(iv);
+    }, 100);
+  }
+  function startSectionTest(sec){
+    goTab('build');
+    var tries = 0;
+    var iv = setInterval(function(){
+      tries++;
+      var sb = document.getElementById('startBtn');
+      /* Tick first, then start (tickSection -> setCountAndStart
+         presses Start once the section is ticked). The old code
+         clicked Start BEFORE ticking, relying on the flow patch
+         swallowing that click while the picker was hidden — the
+         picker is visible by default now, so that click would
+         alert "Pick at least one unit first." instead.
+         (Mirrors Part 2's startSection.) */
+      if(sb){ clearInterval(iv); tickSection(sec); return; }
+      if(tries >= 20) clearInterval(iv);
+    }, 100);
+  }
+  function tickSection(sec){
+    setTimeout(function(){
+      var boxes = document.querySelectorAll('.secBox');
+      var target = null;
+      for(var i = 0; i < boxes.length; i++){
+        var want = boxes[i].getAttribute('data-sec') === sec;
+        if(boxes[i].checked !== want){
+          boxes[i].checked = want;
+          boxes[i].dispatchEvent(newEvent('change'));
+        }
+        if(want) target = boxes[i];
+      }
+      if(!target) return;
+      setTimeout(function(){ setCountAndStart(); }, 150);
+    }, 150);
+  }
+  function setCountAndStart(){
+    var cnt = document.getElementById('cnt');
+    var pool = 0;
+    var all = document.getElementById('cntAll');
+    if(all){ var m = /of\s+(\d+)/.exec(all.textContent || ''); if(m) pool = parseInt(m[1], 10); }
+    if(!pool && cnt) pool = parseInt(cnt.getAttribute('max') || '0', 10);
+    var n = pool ? Math.min(20, pool) : 20;
+    if(cnt){
+      cnt.value = String(n);
+      cnt.dispatchEvent(newEvent('change'));
+      cnt.dispatchEvent(newEvent('input'));
+    }
+    var tree = document.getElementById('tree');
+    var pick = tree ? tree.closest('.card') : null;
+    var btns = pick ? pick.querySelectorAll('button') : [];
+    for(var i = 0; i < btns.length; i++){
+      if(btns[i].textContent.replace(/\s+/g, ' ').trim() === 'Start test' && btns[i].id !== 'startBtn'){
+        btns[i].click();
+        return;
+      }
+    }
+  }
+  function openLatestHistory(){
+    goTab('progress');
+    setTimeout(function(){
+      var rows = document.querySelectorAll('#uiPassHistory .uiP-att');
+      if(rows.length){
+        rows[0].open = true;
+        try{ rows[0].scrollIntoView(); }catch(e){}
+        return;
+      }
+      var h2s = appEl.querySelectorAll('.card h2');
+      for(var i = 0; i < h2s.length; i++){
+        if(h2s[i].textContent.replace(/\s+/g, ' ').trim() === 'Recent tests'){
+          var card = h2s[i].closest ? h2s[i].closest('.card') : null;
+          if(card){ try{ card.scrollIntoView(); }catch(e){} }
+          break;
+        }
+      }
+    }, 200);
+  }
+
+  /* ---------- profile Save safety net (bug 2026-11-27) ---------- */
+  function profileStored(){
+    try{
+      var p = JSON.parse(localStorage.getItem('cmaP1QB.profile.v1') || 'null');
+      return !!(p && (p.name || p.skipped));
+    }catch(e){ return false; }
+  }
+  function forceCloseProfile(){
+    var pm = document.getElementById('profileModal');
+    if(pm && pm.style.display !== 'none'){ pm.style.display = 'none'; document.body.style.overflow = ''; }
+  }
+  function profileNet(){
+    if(profileStored()){ forceCloseProfile(); return; }
+    var nmEl = document.getElementById('pfName'), plEl = document.getElementById('pfPlace');
+    if(!nmEl || !plEl) return;
+    var nm = (nmEl.value || '').trim(), pl = (plEl.value || '').trim();
+    if(!/^[A-Za-z]+(?:[ '\-][A-Za-z]+)*$/.test(nm) || pl.length > 18) return;
+    try{ localStorage.setItem('cmaP1QB.profile.v1', JSON.stringify({name: nm, place: pl})); }catch(e){}
+    if(profileStored()){
+      forceCloseProfile();
+      try{ if(typeof updateProfileChip === 'function') updateProfileChip(); }catch(e){}
+    }
+  }
+  document.addEventListener('click', function(e){
+    /* Capture phase: runs even though the animation handler swallows the
+       tap (same-node listeners are not stopped by stopPropagation). */
+    var t = e.target && e.target.closest ? e.target.closest('#pfSave,#pfSkip') : null;
+    if(!t) return;
+    setTimeout(profileNet, 400);
+    setTimeout(profileNet, 1500);
+  }, true);
+
+  /* ---------- test screen (focus mode): red Exit button ---------- */
+  function patchTest(){
+    var testbar = appEl.querySelector('.testbar');
+    if(!testbar) return;
+    if(document.getElementById('dashExitBtn')) return;
+    var row = testbar.querySelector('.row');
+    if(!row) return;
+    /* Red Exit button (Donate-button filled style, red): wired to the
+       app's own leave flow — clicking the Build tab asks "Leave this
+       test?" and only leaves on confirm. */
+    var eb = document.createElement('button');
+    eb.className = 'btn dash-exit-btn';
+    eb.id = 'dashExitBtn';
+    eb.type = 'button';
+    eb.textContent = 'Exit';
+    eb.onclick = function(){
+      var b = document.querySelector('#tabs button[data-v="build"]');
+      if(b) b.click();
+    };
+    var endBtn = document.getElementById('endBtn');
+    if(endBtn && endBtn.parentNode) endBtn.parentNode.insertBefore(eb, endBtn);
+    else row.appendChild(eb);
+  }
+
+  /* The top nav keeps only brand + profile + Log out + theme, so its
+     click handler is theme-only now. The six nav options live in
+     the fixed bottom bar, which has its own handler below. */
+  topnav.addEventListener('click', function(e){
+    if(e.target && e.target.closest && e.target.closest('#dashThemeBtn')){
+      var tb = document.getElementById('themeBtn');
+      if(tb) tb.click();
+      setTimeout(renderDash, 60);
+    }
+  });
+  bottomnav.addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('button[data-bnav]') : null;
+    if(!b) return;
+    /* "Build test" is the dashboard home (landing); the setup flow
+       itself opens from the home's Build-a-test card. */
+    var nav = b.getAttribute('data-bnav');
+    if(nav === 'progress'){ goPerfPanel(); return; }
+    goTab(NAVMAP[nav]);
+  });
+  if(searchInput) searchInput.addEventListener('input', applySearchFilter);
+  if(bellBtn) bellBtn.addEventListener('click', function(){
+    var open = bellDrop.hidden;
+    renderBell(readStore());
+    bellDrop.hidden = !open;
+    bellBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e){
+    if(!bellDrop.hidden && e.target && !e.target.closest){
+      return;
+    }
+    if(!bellDrop.hidden && e.target && e.target.closest && !e.target.closest('.dash-top-actions')){
+      bellDrop.hidden = true;
+      bellBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+  if(avatarBtn) avatarBtn.addEventListener('click', function(){ goTab('about'); });
+  document.getElementById('dashPerf').addEventListener('click', function(e){
+    var b = e.target && e.target.closest ? e.target.closest('button[data-ptab]') : null;
+    if(b){
+      var tabs = document.querySelectorAll('#dashPerf [data-ptab]');
+      for(var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('on', tabs[i] === b);
+      document.getElementById('dashPerfOverview').hidden = b.getAttribute('data-ptab') !== 'overview';
+      document.getElementById('dashPerfSections').hidden = b.getAttribute('data-ptab') !== 'sections';
+      document.getElementById('dashPerfHistory').hidden = b.getAttribute('data-ptab') !== 'history';
+      return;
+    }
+    var h = e.target && e.target.closest ? e.target.closest('.dash-hist-row') : null;
+    if(h) openLatestHistory();
+  });
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest ? e.target.closest('#tabs button[data-v]') : null;
+    if(t) setTimeout(renderDash, 80);
+  });
+  window.addEventListener('resize', function(){ setTimeout(renderDash, 60); });
+  if(window.MutationObserver){
+    var deb = null;
+    new MutationObserver(function(){
+      /* Test start/end must re-shell immediately (the test layout hides
+         the sidebar/topbar); anything else can wait for the debounce. */
+      var now = !!appEl.querySelector('.testbar');
+      if(now !== lastInTest){ renderDash(); return; }
+      if(deb) clearTimeout(deb);
+      deb = setTimeout(renderDash, 150);
+    }).observe(appEl, {childList:true, subtree:true});
+    new MutationObserver(function(){ renderDash(); }).observe(rootEl, {attributes:true, attributeFilter:['data-theme']});
+  }
+  renderDash();
+  setTimeout(renderDash, 600);
+  setTimeout(renderDash, 1500);
+})();
+</script>
+
+
 </body>
 </html>
