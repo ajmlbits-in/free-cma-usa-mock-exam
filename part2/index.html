@@ -4074,5 +4074,66 @@ body.dash-on{padding-bottom:88px}
 })();
 </script>
 
+<script>
+/* ---------- No-repeat (2026-11-28): never show a question already answered correctly ----------
+   A question answered correctly once (in any earlier test on this device) is
+   hidden from every new Build-a-test. Wrong ones keep coming back until they
+   are answered correctly. The 100-question mock exam is untouched — it always
+   samples the full bank, like the real exam. Progress is already saved per
+   question (qstat); this patch only reads it and fills the one gap: practice
+   tests only recorded a result when Check was tapped, so questions answered
+   but never Checked are recorded when the test is finished. */
+(function(){
+  function qstat(){ try{ return (typeof store!=='undefined' && store && store.qstat) || {}; }catch(e){ return {}; } }
+  function isCorrect(id){ var st=qstat()[id]; return !!(st && st.correct>0); }
+  function alertFn(){ try{ if(typeof inPageAlert==='function') return inPageAlert; }catch(e){} try{ if(typeof showMsg==='function') return showMsg; }catch(e){} return null; }
+  /* 1) Finish: record practice results for questions answered but never Checked. */
+  try{
+    var _finishTest = window.finishTest;
+    window.finishTest = function(timedOut){
+      var s=null; try{ s=sess; }catch(e){}
+      var isPractice = !!(s && s.mode && s.mode!=='exam');
+      _finishTest(timedOut);
+      if(isPractice && s && s.ids && s.answers){
+        for(var k=0;k<s.ids.length;k++){
+          if(s.answers[k]===null || s.answers[k]===undefined) continue;
+          if(s.checked && s.checked[k]) continue;
+          try{ var q=qById(s.ids[k]); if(q) recordQStat(q, s.answers[k]===q.correct); }catch(e){}
+        }
+      }
+    };
+  }catch(e){}
+  /* 2) Start: drop already-correct questions, top up with fresh ones from the same units. */
+  try{
+    var _startTest = window.startTest;
+    window.startTest = function(ids, mode, mins, label){
+      if(label==='Mock exam') return _startTest(ids, mode, mins, label);
+      if(!ids || !ids.length) return _startTest(ids, mode, mins, label);
+      var fresh = ids.filter(function(id){ return !isCorrect(id); });
+      if(fresh.length===ids.length) return _startTest(ids, mode, mins, label);
+      var have={}; fresh.forEach(function(id){ have[id]=1; });
+      var pool=[];
+      try{
+        document.querySelectorAll('.unitBox:checked').forEach(function(cb){
+          (QPARTS[cb.dataset.sec]||[]).filter(function(q){ return q.unit===cb.dataset.unit; }).forEach(function(q){ pool.push(q); });
+        });
+      }catch(e){}
+      pool = pool.filter(function(q){ return !isCorrect(q.id) && !have[q.id]; });
+      try{ pool = shuffle(pool); }catch(e){}
+      for(var i=0;i<pool.length && fresh.length<ids.length;i++) fresh.push(pool[i].id);
+      try{ fresh = shuffle(fresh); }catch(e){}
+      if(!fresh.length){
+        var b=null; try{ b=document.getElementById('startBtn'); }catch(e){}
+        if(b){ b.disabled=false; b.textContent='Start test'; }
+        var af=alertFn();
+        if(af) af('You have already answered every question in these units correctly. Pick other units to keep practising, or clear your saved progress from the Progress tab to try these again.');
+        return;
+      }
+      return _startTest(fresh, mode, mins, label);
+    };
+  }catch(e){}
+})();
+</script>
+
 </body>
 </html>
