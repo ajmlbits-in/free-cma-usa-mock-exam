@@ -34,7 +34,7 @@ device. Nothing is shared between users and nothing is sent to a server.
 
 ## About
 
-Built by Muhammed Ajmal K (@ajmalasees_), a CMA USA Part 1 candidate from
+Built by Mohd Ajmal (@ajmalasees_), a CMA USA Part 1 candidate from
 Kannur, Kerala. Made with Muse by Meta.
 
 Some of this study material is our own work, and the rest has been carefully
